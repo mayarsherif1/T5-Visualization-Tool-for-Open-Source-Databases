@@ -5,7 +5,6 @@ import java.util.List;
 
 public class KDTree extends GenericTree {
     private KDNode root;
-
     public KDTree(){
         this.root=null;
     }
@@ -38,7 +37,65 @@ public class KDTree extends GenericTree {
 
     @Override
     public void delete(Comparable x) {
+        if(!(x instanceof Point)){
+            throw new IllegalArgumentException("KDTree only supports Point Objects");
+        }
+        root = deleteHelper(root, (Point)x, 0);
 
+    }
+
+    private KDNode deleteHelper(KDNode node, Point point, int depth) {
+        if(node==null){
+            return null;
+        }
+        int dimension = depth%2;
+        if (point.equals(node.getPoint())){
+            if (node.isLeaf()){
+                return null;
+            }
+            if (dimension==0){
+                Point nextPoint = findMin(node.getRight(),depth,dimension);
+                node.setPoint(nextPoint);
+                node.setRight(deleteHelper(node.getRight(),nextPoint,depth+1));
+
+            }
+            else {
+                Point nextPoint= findMin(node.getRight(),depth,dimension);
+                node.setPoint(nextPoint);
+                node.setRight(deleteHelper(node.getRight(),nextPoint,depth+1));
+
+            }
+        } else if ((dimension==0&& point.getX()<node.getPoint().getX())|| (dimension==1&& point.getY()<node.getPoint().getY())) {
+            node.setLeft(deleteHelper(node.getLeft(),point,depth+1));
+
+        }
+        else {
+            node.setRight(deleteHelper(node.getRight(),point,depth+1));
+        }
+        return node;
+    }
+
+    private Point findMin(KDNode node, int depth, int dimension) {
+        if (node==null){
+            return null;
+        }
+        int k= depth%2;
+        if (k==dimension){
+            if (node.getLeft()==null){
+                return node.getPoint();
+            }
+            return findMin(node.getLeft(),depth+1,dimension);
+        }
+        Point minLeft = findMin(node.getLeft(),depth+1,dimension);
+        Point minRight = findMin(node.getRight(),depth+1,dimension);
+        Point minPoint = node.getPoint();
+        if(minLeft != null && (dimension==0? minLeft.getX()< minPoint.getX(): minLeft.getY()< minPoint.getY())){
+            minPoint= minLeft;
+        }
+        if(minRight!= null && (dimension==0? minRight.getX()<minPoint.getX(): minRight.getY()< minPoint.getY())){
+            minPoint= minRight;
+        }
+        return minPoint;
     }
 
     @Override
@@ -82,7 +139,7 @@ public class KDTree extends GenericTree {
     public List<Comparable> traverse() {
         List<Comparable> points = new ArrayList<>();
         traverseHelper(root, points);
-        return new ArrayList<>();
+        return points;
     }
 
     private void traverseHelper(KDNode node, List<Comparable> points) {

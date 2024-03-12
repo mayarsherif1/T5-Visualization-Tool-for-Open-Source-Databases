@@ -39,4 +39,8 @@ public class Point implements Comparable<Point>{
         Point point =(Point) o;
         return this.x==point.x && this.y==point.y;
     }
+    @Override
+    public int hashCode(){
+        return 31*x+y;
+    }
 }

@@ -28,6 +28,7 @@ public class CustomSQLListener extends PostgreSQLParserBaseListener {
         visualization.updateVisual();
 
     }
+
     @Override
     public void enterInsertstmt(PostgreSQLParser.InsertstmtContext insertStmt){
         String tableName = insertStmt.insert_target().qualified_name().getText();
@@ -41,7 +42,12 @@ public class CustomSQLListener extends PostgreSQLParserBaseListener {
                 }
             }
 
-            Table table = database.getTable(tableName);
+            Table table = null;
+            try {
+                table = database.getTable(tableName);
+            } catch (TableNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             if (table != null) {
                 table.insertRow(columnNames, values);
                 System.out.println("Inserted into table: " + tableName + "Column: " + columnNames + "Values: " + values);
@@ -49,21 +55,27 @@ public class CustomSQLListener extends PostgreSQLParserBaseListener {
                 System.out.println("Table not found " + tableName);
             }
         }
-            else if(insertStmt.insert_rest().DEFAULT()!=null) {
+        else if(insertStmt.insert_rest().DEFAULT()!=null) {
 
-                Table table1 = database.getTable(tableName);
-                if(table1 !=null){
-                    table1.insertDefRow();
-                    System.out.println("Inserted default values into table: " + tableName);
-
-                }
-                else {
-                    System.out.println("Table not found: " + tableName);
-
-                }
+            Table table1 = null;
+            try {
+                table1 = database.getTable(tableName);
+            } catch (TableNotFoundException e) {
+                throw new RuntimeException(e);
             }
+            if(table1 !=null){
+                table1.insertDefRow();
+                System.out.println("Inserted default values into table: " + tableName);
+
+            }
+            else {
+                System.out.println("Table not found: " + tableName);
+
+            }
+        }
         visualization.updateVisual();
 
     }
+
 
 }

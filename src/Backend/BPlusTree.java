@@ -4,122 +4,107 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BPlusTree extends GenericTree {
-
-    private class Node {
-        public Node parent;
-        boolean isLeaf;
-        ArrayList<Comparable> keys;
-        ArrayList<Node> childNodes;
-
-        Node(boolean isLeaf) {
-            this.isLeaf = isLeaf;
-            this.keys = new ArrayList<>();
-            this.childNodes = new ArrayList<>();
-            this.parent=null;
-        }
-    }
-
-    private Node root;
+    private BPlusTreeNode root;
     private static final int MAX_KEYS = 5;
 
     public BPlusTree() {
-        this.root = new Node(false);
+        this.root = new BPlusTreeNode(false);
     }
 
     @Override
     public void insert(Comparable x) {
-        Node currentNode = root;
+        BPlusTreeNode currentNode = root;
         if(currentNode.isLeaf){
             insertIntoLeaf(currentNode,x);
-            if(currentNode.keys.size()>MAX_KEYS){
+            if(currentNode.getKeys().size()>MAX_KEYS){
                 splitLeaf(currentNode);
             }
             else {
                 while (!currentNode.isLeaf){
                     int i =0;
-                    while (i<currentNode.keys.size()&& x.compareTo(currentNode.keys.get(i))>=0){
+                    while (i< currentNode.getKeys().size()&& x.compareTo(currentNode.getKeys().get(i))>=0){
                         i++;
 
                     }
-                    currentNode=currentNode.childNodes.get(i);
+                    currentNode= (BPlusTreeNode) currentNode.getChildren().get(i);
                 }
                 insertIntoLeaf(currentNode,x);
-                if(currentNode.keys.size()> MAX_KEYS){
+                if(currentNode.getKeys().size()> MAX_KEYS){
                     splitLeaf(currentNode);
                 }
             }
         }
     }
 
-    private void splitLeaf(Node leaf) {
-        int point = leaf.keys.size()/2;
-        Node newLeaf = new Node(true);
+    private void splitLeaf(BPlusTreeNode leaf) {
+        int point = leaf.getKeys().size()/2;
+        BPlusTreeNode newLeaf = new BPlusTreeNode(true);
         //transfer to new leaf
-        newLeaf.keys.addAll(leaf.keys.subList(point, leaf.keys.size()));
-        leaf.keys.subList(point, leaf.keys.size()).clear();
+        newLeaf.getKeys().addAll(leaf.getKeys().subList(point, leaf.getKeys().size()));
+        leaf.getKeys().subList(point, leaf.getKeys().size()).clear();
 
         //update pointers
-        newLeaf.childNodes.add(leaf.childNodes.get(0));
-        leaf.childNodes.set(0,newLeaf);
+        newLeaf.getChildren().add(leaf.getChildren().get(0));
+        leaf.getChildren().set(0,newLeaf);
 
         if (leaf==root){
-            Node newRoot = new Node(false);
-            newRoot.keys.add(newLeaf.keys.get(0));
-            newRoot.childNodes.add(leaf);
-            newRoot.childNodes.add(newLeaf);
+            BPlusTreeNode newRoot = new BPlusTreeNode(false);
+            newRoot.getKeys().add(newLeaf.getKeys().get(0));
+            newRoot.getChildren().add(leaf);
+            newRoot.getChildren().add(newLeaf);
             root= newRoot;
             //update parent
-            leaf.parent=newRoot;
-            newLeaf.parent=newRoot;
+            leaf.setParent(newRoot);
+            newLeaf.setParent(newRoot);
 
         }
         else {
-            insertIntoParent(leaf, newLeaf.keys.get(0), newLeaf);
+            insertIntoParent(leaf, newLeaf.getKeys().get(0), newLeaf);
         }
 
     }
 
-    private void insertIntoParent(Node leaf, Comparable key, Node newLeaf) {
-        Node parent = leaf.parent;
+    private void insertIntoParent(BPlusTreeNode leaf, Comparable key, BPlusTreeNode newLeaf) {
+        BPlusTreeNode parent = (BPlusTreeNode) leaf.getParent();
         if(parent== null ){
-            parent= new Node(false);
+            parent= new BPlusTreeNode(false);
             root= parent;
         }
         int i =0;
-        while (i< parent.keys.size() && key.compareTo(parent.keys.get(i))>0){
+        while (i< parent.getKeys().size() && key.compareTo(parent.getKeys().get(i))>0){
             i++;
         }
-        parent.keys.add(i,key);
-        parent.childNodes.add(i+1,newLeaf);
-
-        if(parent.keys.size()>MAX_KEYS){
+        parent.getKeys().add(i,key);
+        parent.getChildren().add(i+1,newLeaf);
+        newLeaf.setParent(parent);
+        if(parent.getKeys().size()>MAX_KEYS){
             splitParent(parent);
         }
     }
 
-    private void splitParent(Node parent) {
-        int midIndex = parent.keys.size()/2;
-        Comparable midKey = parent.keys.get(midIndex);
+    private void splitParent(BPlusTreeNode parent) {
+        int midIndex = parent.getKeys().size()/2;
+        Comparable midKey = parent.getKeys().get(midIndex);
 
-        Node newParent = new Node(false);
+        BPlusTreeNode newParent = new BPlusTreeNode(false);
         //transfer to new parent
-        newParent.keys.addAll(parent.keys.subList(midIndex+1,parent.keys.size()));
-        newParent.childNodes.addAll(parent.childNodes.subList(midIndex+1,parent.childNodes.size()+1));
-        parent.keys.subList(midIndex,parent.keys.size()).clear();
-        parent.childNodes.subList(midIndex+1,parent.childNodes.size()).clear();
+        newParent.getKeys().addAll(parent.getKeys().subList(midIndex+1,parent.getKeys().size()));
+        newParent.getChildren().addAll(parent.getChildren().subList(midIndex+1,parent.getChildren().size()+1));
+        parent.getKeys().subList(midIndex,parent.getKeys().size()).clear();
+        parent.getChildren().subList(midIndex+1,parent.getChildren().size()).clear();
 
         //update parent pointers
-        for (Node child : newParent.childNodes){
-            child.parent= newParent;
+        for (Node child : newParent.getChildren()){
+            child.setParent(newParent);
         }
         if(parent== root){
-            Node newRoot = new Node(false);
-            newRoot.keys.add(midKey);
-            newRoot.childNodes.add(parent);
-            newRoot.childNodes.add(newParent);
+            BPlusTreeNode newRoot = new BPlusTreeNode(false);
+            newRoot.getKeys().add(midKey);
+            newRoot.getChildren().add(parent);
+            newRoot.getChildren().add(newParent);
             root=newRoot;
-            parent.parent=newRoot;
-            newParent.parent=newRoot;
+            parent.setParent(newRoot);
+            newParent.setParent(newRoot);
         }
         else {
             insertIntoParent(parent,midKey,newParent);
@@ -127,22 +112,22 @@ public class BPlusTree extends GenericTree {
 
     }
 
-    private void insertIntoLeaf(Node currentNode, Comparable x) {
+    private void insertIntoLeaf(BPlusTreeNode currentNode, Comparable x) {
         int i =0;
-        while (i< currentNode.keys.size()&& x.compareTo(currentNode.keys.get(i))>0){
+        while (i< currentNode.getKeys().size()&& x.compareTo(currentNode.getKeys().get(i))>0){
             i++;
         }
-        currentNode.keys.add(i,x);
+        currentNode.getKeys().add(i,x);
     }
 
     @Override
     public void delete(Comparable x) {
         // Real B+ tree logic will handle finding the key, deleting it, and then handling underflow in the leaf and potentially in parent nodes
-        Node leafNode = findLeafNode(root,x);
+        BPlusTreeNode leafNode = findLeafNode(root,x);
         if (leafNode!=null){
-            boolean deleted = leafNode.keys.remove(x);
+            boolean deleted = leafNode.getKeys().remove(x);
             if(deleted){
-                if ((leafNode.keys.size()<Math.ceil(MAX_KEYS/2.0))&& leafNode!= root){
+                if ((leafNode.getKeys().size()<Math.ceil(MAX_KEYS/2.0))&& leafNode!= root){
                     handleUnderFlow(leafNode);
                 }
             }
@@ -150,9 +135,9 @@ public class BPlusTree extends GenericTree {
 
     }
 
-    private Node findLeafNode(Node node, Comparable x) {
+    private BPlusTreeNode findLeafNode(BPlusTreeNode node, Comparable x) {
         if(node.isLeaf){
-            if(node.keys.contains(x)){
+            if(node.getKeys().contains(x)){
                 return node;
             }
             else {
@@ -160,49 +145,49 @@ public class BPlusTree extends GenericTree {
             }
         }
         else {
-            for (int i =0; i< node.keys.size(); i++){
-                if (x.compareTo(node.keys.get(i))<0){
-                    return findLeafNode(node.childNodes.get(i),x);
+            for (int i =0; i< node.getKeys().size(); i++){
+                if (x.compareTo(node.getKeys().get(i))<0){
+                    return findLeafNode((BPlusTreeNode) node.getChildren().get(i),x);
                 }
             }
-            return findLeafNode(node.childNodes.getLast(),x);
+            return findLeafNode((BPlusTreeNode) node.getChildren().get(node.getChildren().size()-1),x);
         }
     }
 
-    private void handleUnderFlow(Node node) {
-        Node parent = node.parent;
-        int nodeIndex = parent.childNodes.indexOf(node);
+    private void handleUnderFlow(BPlusTreeNode node) {
+        BPlusTreeNode parent = (BPlusTreeNode) node.getParent();
+        int nodeIndex = parent.getChildren().indexOf(node);
 
-        Node left = (nodeIndex>0)? parent.childNodes.get(nodeIndex-1): null;
-        Node right = (nodeIndex<parent.childNodes.size()-1)?parent.childNodes.get(nodeIndex+1): null;
+        BPlusTreeNode left = (nodeIndex>0)? (BPlusTreeNode) parent.getChildren().get(nodeIndex-1) : null;
+        BPlusTreeNode right = (nodeIndex<parent.getChildren().size()-1)? (BPlusTreeNode) parent.getChildren().get(nodeIndex+1) : null;
 
         //borrowing
-        if(left!= null&& left.keys.size()>Math.ceil(MAX_KEYS/2.0)){
+        if(left!= null&& left.getKeys().size()>Math.ceil(MAX_KEYS/2.0)){
             //borrow from left
-            Comparable borrowedKey = left.keys.remove(left.keys.size()-1);
-            node.keys.add(0,borrowedKey);
-            parent.keys.set(nodeIndex-1,node.keys.get(0));
+            Comparable borrowedKey = left.getKeys().remove(left.getKeys().size()-1);
+            node.getKeys().add(0,borrowedKey);
+            parent.getKeys().set(nodeIndex-1,node.getKeys().get(0));
 
         }
-        else if (right!= null && right.keys.size()> Math.ceil(MAX_KEYS/2.0)){
-            Comparable borrowedKey = right.keys.removeFirst();
-            node.keys.add(borrowedKey);
-            parent.keys.set(nodeIndex,right.keys.get(0));
+        else if (right!= null && right.getKeys().size()> Math.ceil(MAX_KEYS/2.0)){
+            Comparable borrowedKey = right.getKeys().removeFirst();
+            node.getKeys().add(borrowedKey);
+            parent.getKeys().set(nodeIndex,right.getKeys().get(0));
         }
         else {
             if (left != null) {
-                left.keys.addAll(node.keys);
-                parent.childNodes.remove(node);
-                parent.keys.remove(nodeIndex - 1);
+                left.getKeys().addAll(node.getKeys());
+                parent.getChildren().remove(node);
+                parent.getKeys().remove(nodeIndex - 1);
             } else if (right != null) {
-                node.keys.addAll(right.keys);
-                parent.childNodes.remove(right);
-                parent.keys.remove(nodeIndex);
+                node.getKeys().addAll(right.getKeys());
+                parent.getChildren().remove(right);
+                parent.getKeys().remove(nodeIndex);
             }
-            if (parent == root && parent.keys.isEmpty()) {
+            if (parent == root && parent.getKeys().isEmpty()) {
                 root = node;
-                root.parent = null;
-            } else if (parent != root && parent.keys.size() < Math.ceil(MAX_KEYS / 2.0)) {
+                root.setParent(null);
+            } else if (parent != root && parent.getKeys().size() < Math.ceil(MAX_KEYS / 2.0)) {
                 handleUnderFlow(parent);
             }
         }
@@ -210,21 +195,21 @@ public class BPlusTree extends GenericTree {
 
     @Override
     public boolean search(Comparable x) {
-        Node currentNode = root;
+        BPlusTreeNode currentNode = root;
         while (!currentNode.isLeaf) {
             boolean found = false;
-            for (int i = 0; i < currentNode.keys.size(); i++) {
-                if (x.compareTo(currentNode.keys.get(i)) < 0) {
-                    currentNode = currentNode.childNodes.get(i);
+            for (int i = 0; i < currentNode.getKeys().size(); i++) {
+                if (x.compareTo(currentNode.getKeys().get(i)) < 0) {
+                    currentNode = (BPlusTreeNode) currentNode.getChildren().get(i);
                     found = true;
                     break;
                 }
             }
             if (!found) {
-                currentNode = currentNode.childNodes.get(currentNode.childNodes.size() - 1);
+                currentNode = (BPlusTreeNode) currentNode.getChildren().get(currentNode.getChildren().size() - 1);
             }
         }
-        return currentNode.keys.contains(x);
+        return currentNode.getKeys().contains(x);
     }
 
     @Override
@@ -238,9 +223,9 @@ public class BPlusTree extends GenericTree {
         List<Comparable> keys = new ArrayList<>();
         Node current = findLeftMostLeaf(root);
         while (current!=null){
-            keys.addAll(current.keys);
-            if(!current.childNodes.isEmpty()&& current.isLeaf){
-                current= current.childNodes.get(0);
+            keys.addAll(((BPlusTreeNode) current).getKeys());
+            if(!current.getChildren().isEmpty()&& current.isLeaf){
+                current= current.getChildren().get(0);
             }
             else {
                 current=null;
@@ -249,15 +234,15 @@ public class BPlusTree extends GenericTree {
         return keys;
     }
 
-    private Node findLeftMostLeaf(Node node) {
+    private BPlusTreeNode findLeftMostLeaf(BPlusTreeNode node) {
         if (node== null){
             return null;
         }
         while (!node.isLeaf){
-            if (node.childNodes.isEmpty()){
+            if (node.getChildren().isEmpty()){
                 return null;
             }
-            node= node.childNodes.get(0);
+            node=(BPlusTreeNode) node.getChildren().get(0);
         }
         return node;
     }

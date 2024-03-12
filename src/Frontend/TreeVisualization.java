@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -138,8 +137,8 @@ public class TreeVisualization extends JPanel {
                     CreateTableTab(sql);
                 }
                 else {
-                    Node rootNode = processSQL(sql);
-                    treePanel.setRoot(rootNode);
+                    ParseTree parseTree = processSQL(sql);
+                    //todo setParseTree()
                     treePanel.repaint();
                 }
             }
@@ -154,25 +153,7 @@ public class TreeVisualization extends JPanel {
         if(sql.trim().isEmpty()){
             return;
         }
-        //convert text to ANTLR input stream
-        CharStream charStream = CharStreams.fromString(sql);
-        //initiate lexer
-        PostgreSQLLexer lexer = new PostgreSQLLexer(charStream);
-        //generate tokens from lexer
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        //initiate parser
-        PostgreSQLParser parser = new PostgreSQLParser(tokens);
-        ParseTree tree = parser.root();
-        ParseTreeWalker walker = new ParseTreeWalker();
-        CustomSQLListener listener = new CustomSQLListener(database,this);
-        walker.walk(listener, tree);
-
-//        if(sql.toLowerCase().startsWith("create table")){
-//            setCreateTable(tree);
-//        }
-//        else if (sql.toLowerCase().startsWith("insert into")){
-//            setInsertInto(tree);
-//        }
+        ParseTree tree = processSQL(sql);
         updateVisual();
 
     }
@@ -224,7 +205,7 @@ public class TreeVisualization extends JPanel {
         tablesPanel.revalidate();
         tablesPanel.repaint();
     }
-    public void addColumnToTable(String tableName, String columnName, String columnType) {
+    public void addColumnToTable(String tableName, String columnName, String columnType) throws TableNotFoundException {
         Table table = database.getTable(tableName);
         if (table != null) {
             Column newColumn = new Column(columnName, columnType);
@@ -406,18 +387,7 @@ public class TreeVisualization extends JPanel {
         }
     }
 
-    private Node processSQL(String sql){
-        Pattern pattern = Pattern.compile("CREATE TABLE (\\w+)");
-        Matcher matcher = pattern.matcher(sql);
-        if(matcher.find()){
-            String tableName = matcher.group(1);
-            System.out.print(tableName);
-            Node tableNode = new Node(tableName);
-            System.out.print(tableNode);
-
-            return tableNode;
-        }
-
+    private ParseTree processSQL(String sql){
         //convert text to ANTLR input stream
         CharStream charStream = CharStreams.fromString(sql);
         //initiate lexer
@@ -427,12 +397,7 @@ public class TreeVisualization extends JPanel {
         //initiate parser
         PostgreSQLParser parser = new PostgreSQLParser(tokens);
         //starting rule
-        ParseTree tree = parser.root();
-
-        CustomPostgreSQLListener columnListener = new CustomPostgreSQLListener();
-        ParseTreeWalker.DEFAULT.walk(columnListener,tree);
-        
-        return buildTree(tree);
+        return parser.root();
     }
 
 

@@ -15,7 +15,6 @@ public class Table {
         this.columns = new ArrayList<>();
         this.rows=new ArrayList<>();
 
-
     }
 
     public String getName(){
@@ -38,10 +37,22 @@ public class Table {
         if (columnNames.size() != values.size()) {
             throw new IllegalArgumentException("Number of columns and values do not match.");
         }
-
         Map<String, String> newRow = new HashMap<>();
         for (int i = 0; i < columnNames.size(); i++) {
-            newRow.put(columnNames.get(i), values.get(i));
+            String columnName = columnNames.get(i);
+            String value = values.get(i);
+            boolean colFound = false;
+            for (Column column: columns){
+                if (column.getName().equals(columnName)){
+                    //todo type checking
+                    colFound=true;
+                    newRow.put(columnName,value);
+                    break;
+                }
+            }
+            if (!colFound){
+                throw new IllegalArgumentException("Column does not exist"+ columnName);
+            }
         }
         rows.add(newRow);
     }
@@ -77,4 +88,27 @@ public class Table {
             System.out.println(row);
         }
     }
+
+    public void deleteRow(Map<String, String> row) {
+        List<Map<String,String>> removeRows= new ArrayList<>();
+        for (Map<String,String> r : rows){
+            if(r.equals(row)){
+                removeRows.add(row);
+            }
+
+        }
+       rows.removeAll(removeRows);
+    }
+
+    public void updateRow(Map<String,String> newRow, Map<String,String> oldRow){
+        for(Map<String,String> row: rows){
+            if(row.equals(oldRow)){
+                for(String col : newRow.keySet()){
+                    row.put(col,newRow.get(col));
+                }
+            }
+        }
+    }
+
+
 }

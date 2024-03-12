@@ -43,4 +43,8 @@ public class KDNode extends Node {
         return "KDNode{" + "point=(" + point.getX() + ", " + point.getY() + ")" + '}';
     }
 
+    public void setPoint(Point point) {
+        this.point=point;
+
+    }
 }

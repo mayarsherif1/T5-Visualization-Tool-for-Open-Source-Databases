@@ -16,8 +16,12 @@ public class Database {
         tables.put(table.getName(), table);
     }
 
-    public Table getTable(String tableName){
-        return tables.get(tableName);
+    public Table getTable(String tableName) throws TableNotFoundException{
+        Table table = tables.get(tableName);
+        if(table==null){
+            throw new TableNotFoundException(tableName);
+        }
+        return table;
     }
 
     public List<Table> getAllTables(){
@@ -46,6 +50,35 @@ public class Database {
         }
     }
 
+    public void insertDefValuesToTable(String tableName){
+        Table table = tables.get(tableName);
+        if(table!=null){
+            table.insertDefRow();
+        }
+        else {
+            System.out.println("Table " + tableName + " does not exist.");
+        }
+    }
 
+    public void deleteFromTable(String tableName, Map<String,String> row){
+        Table table = tables.get(tableName);
+        if(table!=null){
+            table.deleteRow(row);
+        }
+        else {
+            System.out.println("Table " + tableName + " does not exist.");
+
+        }
+    }
+
+    public void updateTable(String tableName, Map<String,String> newTable,Map<String,String> oldTable){
+        Table table = tables.get(tableName);
+        if(table != null){
+            table.updateRow(newTable, oldTable);
+        }
+        else {
+            System.out.println("Table " + tableName + " does not exist.");
+        }
+    }
 
 }

@@ -9,6 +9,7 @@ public class Node {
     private Node parent;
     private List<Node> children;
 
+
     public Node(Comparable data) {
         this.data = data;
         this.children = new ArrayList<>();
@@ -20,7 +21,11 @@ public class Node {
     }
 
     public boolean removeChild(Node child) {
-        return this.children.remove(child);
+        boolean removed = this.children.remove(child);
+        if (removed && child.parent==this){
+            child.parent=null;
+        }
+        return removed;
     }
 
     public Comparable getData() {
@@ -40,20 +45,56 @@ public class Node {
     }
 
     public List<Node> getChildren() {
-        return children;
+        return new ArrayList<>(children);
+    }
+    public boolean isLeaf(){
+        return children.isEmpty();
     }
 
     public void setChildren(List<Node> children) {
+        for (Node child: children){
+            child.setParent(this);
+        }
         this.children = children;
     }
 
     @Override
     public String toString() {
-        return "TreeNode{" +
-                "data=" + data +
-                ", children=" + children +
-                '}';
+        return "Node{" + "data=" + data + ", childrenCount=" + children.size() + '}';
     }
 
-    // Additional methods like find, update can be implemented based on specific requirements
+    public Node findNode(Comparable target){
+        if(data.equals(target)){
+            return this;
+
+        }
+        for (Node child: children){
+            Node found = child.findNode(target);
+            if(found!=null){
+                return found;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(this==o)
+            return true;
+        if(o==null || getClass()!= o.getClass())
+            return false;
+        Node node = (Node)o;
+        if(data==null && node.data!=null)
+            return false;
+        if(data!=null && !data.equals(node.data))
+            return false;
+
+        return true;
+
+    }
+    @Override
+    public int hashCode(){
+        return (data!= null)? data.hashCode() :0;
+    }
+
 }
