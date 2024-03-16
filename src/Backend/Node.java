@@ -9,7 +9,6 @@ public class Node {
     private Node parent;
     private List<Node> children;
 
-
     public Node(Comparable data) {
         this.data = data;
         this.children = new ArrayList<>();
@@ -18,6 +17,11 @@ public class Node {
     public void addChild(Node child) {
         child.setParent(this);
         this.children.add(child);
+    }
+    public void addChildren(List<Node> newChildren){
+        for(Node child: newChildren){
+            addChild(child);
+        }
     }
 
     public boolean removeChild(Node child) {

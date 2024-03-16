@@ -9,10 +9,11 @@ import java.util.List;
 
 public class TreePanel extends JPanel {
     private Node root;
-    double scaleFactor =1.0;
+    double scaleFactor = 1.0;
 
     public TreePanel(Node root){
         this.root=root;
+
     }
 
 
