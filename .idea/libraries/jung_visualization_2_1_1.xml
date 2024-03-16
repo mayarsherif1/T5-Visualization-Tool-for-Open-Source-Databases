@@ -1,0 +1,25 @@
+<component name="libraryTable">
+  <library name="jung-visualization-2.1.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/jung-visualization-2.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jung-samples-2.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jung-io-2.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jung-graph-impl-2.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jung-api-2.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jung-algorithms-2.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-algorithms/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-algorithms/src/test/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-api/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-api/src/test/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-graph-impl/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-io/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-io/src/test/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-samples/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-visualization/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jrtom-jung-0158dfa.zip!/jrtom-jung-0158dfa/jung-visualization/src/test/java" />
+    </SOURCES>
+  </library>
+</component>
