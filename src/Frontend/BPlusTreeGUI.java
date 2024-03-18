@@ -100,15 +100,15 @@ public class BPlusTreeGUI extends JFrame {
         BPlusTree.insert(8);
         BPlusTree.insert(1);
         BPlusTree.insert(23);
-        BPlusTree.insert(5);
-        BPlusTree.insert(7);
-        BPlusTree.insert(2);
-        BPlusTree.insert(28);
-        BPlusTree.insert(9);
-        BPlusTree.insert(18);
-        BPlusTree.insert(24);
-        BPlusTree.insert(40);
-        BPlusTree.insert(48);
+//        BPlusTree.insert(5);
+//        BPlusTree.insert(7);
+//        BPlusTree.insert(2);
+//        BPlusTree.insert(28);
+//        BPlusTree.insert(9);
+//        BPlusTree.insert(18);
+//        BPlusTree.insert(24);
+//        BPlusTree.insert(40);
+//        BPlusTree.insert(48);
 
 
 

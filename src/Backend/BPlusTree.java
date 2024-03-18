@@ -5,7 +5,7 @@ import java.util.List;
 
 public class BPlusTree extends GenericTree {
     private BPlusTreeNode root;
-    private static final int MAX_KEYS = 2;
+    private static final int MAX_KEYS = 5;
 
     public BPlusTree() {
         this.root = new BPlusTreeNode(false);
@@ -18,20 +18,39 @@ public class BPlusTree extends GenericTree {
     @Override
     public void insert(Comparable x) {
         System.out.println("BPlusTree insert method");
-        BPlusTreeNode currentNode = root;
+        BPlusTreeNode currentNode =root;
+
+        while (!currentNode.isLeaf()){
             int i =0;
-            while (i<currentNode.getKeys().size()&& x.compareTo(currentNode.getKeys().get(i))> 0){
+            System.out.println("currentNode keys size: " +currentNode.getKeys().size());
+            System.out.println("currentNode keys: " +currentNode.getKeys());
+
+            while (i<currentNode.getKeys().size() && x.compareTo(currentNode.getKeys().get(i))>= 0){
+                System.out.println("currentNode keys i: " +currentNode.getKeys().get(i));
                 i++;
             }
+            if(i<currentNode.getChildren().size()) {
+                currentNode = (BPlusTreeNode) currentNode.getChildren().get(i);
+            }
+            else {
+                System.out.println("Attempted to navigate to a child that does not exist.");
+                break;
+            }
+        }
+        int insertPos =0;
+        while (insertPos< currentNode.getKeys().size()&& x.compareTo(currentNode.getKeys().get(insertPos))>0 ){
+            insertPos++;
+        }
+        currentNode.getKeys().add(insertPos,x);
+
 
 //            if(i<currentNode.getChildren().size()){
 //                currentNode = (BPlusTreeNode) currentNode.getChildren().get(i);
 //            }
-        currentNode.getKeys().add(i,x);
+        //currentNode.getKeys().add(i,x);
         //insertIntoLeaf(currentNode,x);
         if(currentNode.getKeys().size()>MAX_KEYS){
             splitLeaf(currentNode);
-
         }
 
 //        if(currentNode.isLeaf){
@@ -58,40 +77,27 @@ public class BPlusTree extends GenericTree {
 
     private void splitLeaf(BPlusTreeNode leaf) {
         System.out.println("BPlusTree splitLeaf method");
-        int point= (MAX_KEYS+1)/2;
+        int point= (leaf.getKeys().size())/2;
+        List<Comparable> newKeys = new ArrayList<>(leaf.getKeys().subList(point + 1, leaf.getKeys().size()));
         System.out.println("BPlusTree splitLeaf method point: "+ point);
         BPlusTreeNode newLeaf = new BPlusTreeNode(true);
-        //transfer to new leaf
-        while (leaf.getKeys().size() > point) {
-            newLeaf.getKeys().add(leaf.getKeys().remove(point));
+        newLeaf.getKeys().addAll(newKeys);
+        Comparable splitKey = leaf.getKeys().get(point);
+        leaf.getKeys().subList(point, leaf.getKeys().size()).clear();
+
+        if (leaf.getNext() != null) {
+            newLeaf.setNext(leaf.getNext());
         }
-        System.out.println("BPlusTree splitLeaf method newLeaf keys: "+ newLeaf.getKeys());
-
-        //update pointers
-        //todo make the middle value the new root/parent and the rest are children.
-        newLeaf.setNext(leaf.getNext());
-        System.out.println("BPlusTree splitLeaf method newLeaf next: " + newLeaf.getNext());
-
         leaf.setNext(newLeaf);
-        System.out.println("BPlusTree splitLeaf method leaf next: " + leaf.getNext());
-        Comparable splitKey = newLeaf.getKeys().get(0);
 
-//        newLeaf.getChildren().add(leaf.getChildren().get(0));
-//        leaf.getChildren().set(0,newLeaf);
-
-        if (leaf==root){
+        if (leaf == root) {
             BPlusTreeNode newRoot = new BPlusTreeNode(false);
-            System.out.println("BPlusTree splitLeaf method newRoot: "+ newRoot);
             newRoot.getKeys().add(splitKey);
-            System.out.println("BPlusTree splitLeaf method newRoot keys: "+ newRoot.getKeys());
             newRoot.addChild(leaf);
             newRoot.addChild(newLeaf);
-            System.out.println("BPlusTree splitLeaf method newRoot children: "+ newRoot.getChildren());
-            root= newRoot;
-            //update parent
+            root = newRoot;
             leaf.setParent(newRoot);
             newLeaf.setParent(newRoot);
-
         }
         else {
             System.out.println("going to insertIntoParent method");
@@ -100,39 +106,34 @@ public class BPlusTree extends GenericTree {
 
     }
 
-    private void insertIntoParent(BPlusTreeNode leaf, Comparable key, BPlusTreeNode newLeaf) {
+    private void insertIntoParent(BPlusTreeNode child, Comparable key, BPlusTreeNode newChild) {
         System.out.println("BPlusTree insertIntoParent method");
-        BPlusTreeNode parent = (BPlusTreeNode) leaf.getParent();
-//        int index = parent.getChildren().indexOf(leaf);
-//        parent.getKeys().add(index,key);
-//        parent.getChildren().add(index+1,newLeaf);
-//        newLeaf.setParent(parent);
 
-        if(parent==null) {
-
+        if(child.getParent()==null) {
             System.out.println("BPlusTree insertIntoParent parent==null");
-            parent = new BPlusTreeNode(false);
-            leaf.setParent(parent);
-            parent.getChildren().add(leaf);
-            System.out.println("BPlusTree insertIntoParent method parent children" + parent.getChildren());
+            BPlusTreeNode newRoot = new BPlusTreeNode(false);
+            newRoot.getKeys().add(key);
+            newRoot.addChild(child);
+            newRoot.addChild(newChild);
+            root = newRoot;
+            child.setParent(newRoot);
+            newChild.setParent(newRoot);
+            System.out.println("New root created with keys: " + newRoot.getKeys());
+            return;
+        }
+        BPlusTreeNode parent =(BPlusTreeNode) child.getParent();
+        int index = 0;
+        while (index < parent.getKeys().size() && key.compareTo(parent.getKeys().get(index)) > 0) {
+            index++;
+        }
+        parent.getKeys().add(index,key);
+        parent.getChildren().add(index+1,newChild);
 
+        newChild.setParent(parent);
+        if (parent.getKeys().size()>MAX_KEYS){
+            splitParent(parent);
         }
-        int i =0;
-        while (i< parent.getKeys().size() && key.compareTo(parent.getKeys().get(i))>0){
-            i++;
-        }
-        parent.getKeys().add(i,key);
-        parent.getChildren().add(i+1,newLeaf);
-        leaf.setParent(parent);
-        newLeaf.setParent(parent);
-        if(parent.getKeys().size()>MAX_KEYS){
-            System.out.println("BPlusTree insertIntoParent method parent before splitting: "+ parent);
-            splitInternalNode(parent);
-            System.out.println("BPlusTree insertIntoParent method parent after splitting: "+ parent);
-        }
-        if (root==leaf){
-            root=parent;
-        }
+
     }
 
     private void splitParent(BPlusTreeNode parent) {
@@ -177,28 +178,50 @@ public class BPlusTree extends GenericTree {
     }
 
     private void splitInternalNode(BPlusTreeNode internalNode){
-        int splitIndex = MAX_KEYS/2;
-        Comparable middleKey= internalNode.getKeys().get(splitIndex);
-        BPlusTreeNode rightNode = new BPlusTreeNode(false);
-        rightNode.getKeys().addAll(new ArrayList<>(internalNode.getKeys().subList(splitIndex+1,internalNode.getChildren().size())));
-        rightNode.setChildren(new ArrayList<>(internalNode.getChildren().subList(splitIndex+1,internalNode.getChildren().size()+1)));
-        for (Node child: rightNode.getChildren()){
-            ((BPlusTreeNode) child).setParent(rightNode);
-        }
+        int splitIndex = (internalNode.getKeys().size()+1)/2;
+        Comparable splitKey = internalNode.getKeys().get(splitIndex);
+
+        BPlusTreeNode newNode = new BPlusTreeNode(false);
+        List<Comparable> newKeys = new ArrayList<>(internalNode.getKeys().subList(splitIndex+1,internalNode.getKeys().size()));
+        List<Node> newChildren = new ArrayList<>(internalNode.getChildren().subList(splitIndex + 1, internalNode.getChildren().size()));
+
+        newNode.getKeys().addAll(newKeys);
+        newNode.getChildren().addAll(newChildren);
+
         internalNode.getKeys().subList(splitIndex,internalNode.getKeys().size()).clear();
-        internalNode.getChildren().subList(splitIndex+1, internalNode.getChildren().size()).clear();
+        internalNode.getChildren().subList(splitIndex+1,internalNode.getChildren().size()).clear();
+
+        for (Node child: newNode.getChildren()){
+            ((BPlusTreeNode)child).setParent(newNode);
+        }
+//        Comparable midKey = internalNode.getKeys().remove(splitIndex);
+
+//        while (internalNode.getKeys().size()>splitIndex+1){
+//            rightNode.getKeys().add(internalNode.getKeys().remove(splitIndex+1));
+//            rightNode.addChild(internalNode.getChildren().remove(splitIndex+1));
+//        }
+//        internalNode.getKeys().remove(splitIndex);
+//
+//        rightNode.getKeys().addAll(new ArrayList<>(internalNode.getKeys().subList(splitIndex+1,internalNode.getChildren().size())));
+//        rightNode.setChildren(new ArrayList<>(internalNode.getChildren().subList(splitIndex+1,internalNode.getChildren().size()+1)));
+//
+//        for (Node child: rightNode.getChildren()){
+//            ((BPlusTreeNode) child).setParent(rightNode);
+//        }
+//        internalNode.getKeys().subList(splitIndex,internalNode.getKeys().size()).clear();
+//        internalNode.getChildren().subList(splitIndex+1, internalNode.getChildren().size()).clear();
 
         if(internalNode== root){
             BPlusTreeNode newRoot = new BPlusTreeNode(false);
-            newRoot.getKeys().add(middleKey);
-            newRoot.getChildren().add(internalNode);
-            newRoot.getChildren().add(rightNode);
+            newRoot.getKeys().add(splitKey);
+            newRoot.addChild(internalNode);
+            newRoot.addChild(newNode);
             root=newRoot;
             internalNode.setParent(newRoot);
-            rightNode.setParent(newRoot);
+            newNode.setParent(newRoot);
         }
         else {
-            insertIntoParent(internalNode,middleKey,rightNode);
+            insertIntoParent(internalNode,splitKey,newNode);
         }
     }
 
