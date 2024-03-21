@@ -1,8 +1,8 @@
 package Frontend;
 
 import Backend.BPlusTree;
+import Backend.BPlusTreeInternalNode;
 import Backend.BPlusTreeNode;
-import Backend.Node;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;
@@ -16,15 +16,13 @@ public class BPlusTreeGUI extends JFrame {
     private GraphComponent graphComponent;
 
     public BPlusTreeGUI(){
-        this.BPlusTree= new BPlusTree();
+        this.BPlusTree= new BPlusTree(2); //example
         this.graphComponent= new GraphComponent();
         initializeBTreeVis();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("B+ Tree Visualization");
         setSize(800,600);
         setLocationRelativeTo(null);
-
-
     }
 
     private void initializeBTreeVis() {
@@ -51,35 +49,30 @@ public class BPlusTreeGUI extends JFrame {
         double height = 30;
 
 
-        INode newNode = graph.createNode(new RectD(0,0,width,height));
+        INode newNode = graph.createNode(parent, new RectD(0, 0, width, height), null, node.getKeys().toString());
         graph.addLabel(newNode,node.getKeys().toString());
 
-        if(parent!=null){
-            graph.createEdge(parent,newNode);
+        if (node instanceof BPlusTreeInternalNode) {
+            BPlusTreeInternalNode internalNode = (BPlusTreeInternalNode) node;
+            for (BPlusTreeNode child : internalNode.getChildren()) {
+                createGraphForTree(child, graph, newNode);
+            }
         }
-
-        for (Node child : node.getChildren()){
-            createGraphForTree((BPlusTreeNode) child,graph,newNode);
-        }
-
         return newNode;
-
     }
 
-    //will be used after insert/delete
     private void refreshVis(){
-        SwingUtilities.invokeLater(()->{
-            IGraph graph= graphComponent.getGraph();
+        SwingUtilities.invokeLater(() -> {
+            IGraph graph = graphComponent.getGraph();
             graph.clear();
-            if (BPlusTree.getRoot()!=null){
-                createGraphForTree(BPlusTree.getRoot(),graph,null);
+            if (BPlusTree.getRoot() != null) {
+                createGraphForTree(BPlusTree.getRoot(), graph, null);
             }
-            HierarchicLayout layout= new HierarchicLayout();
+            HierarchicLayout layout = new HierarchicLayout();
             layout.setNodeToNodeDistance(30);
             layout.setMinimumLayerDistance(50);
             graph.applyLayout(layout);
             graphComponent.updateUI();
-
         });
 
     }
@@ -88,9 +81,8 @@ public class BPlusTreeGUI extends JFrame {
         SwingUtilities.invokeLater(()->{
             BPlusTreeGUI bPlusTreeGUI = new BPlusTreeGUI();
             bPlusTreeGUI.populateTree();
-            bPlusTreeGUI.refreshVis();
+            //bPlusTreeGUI.refreshVis();
             bPlusTreeGUI.setVisible(true);
-
         });
     }
 
@@ -98,8 +90,8 @@ public class BPlusTreeGUI extends JFrame {
         System.out.println("B+ tree populate sample");
         BPlusTree.insert(12);
         BPlusTree.insert(8);
-        BPlusTree.insert(1);
-        BPlusTree.insert(23);
+//        BPlusTree.insert(1);
+//        BPlusTree.insert(23);
 //        BPlusTree.insert(5);
 //        BPlusTree.insert(7);
 //        BPlusTree.insert(2);
@@ -109,9 +101,6 @@ public class BPlusTreeGUI extends JFrame {
 //        BPlusTree.insert(24);
 //        BPlusTree.insert(40);
 //        BPlusTree.insert(48);
-
-
-
         refreshVis();
         System.out.println("after insertion");
 

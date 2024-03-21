@@ -23,6 +23,13 @@ public class Point implements Comparable<Point>{
         return Integer.compare(this.x, p.x);
     }
 
+    public int compareTo(Point p, int level) {
+        if(level%2 ==0) {
+            return Integer.compare(this.x, p.x);
+        }
+        return Integer.compare(this.y, p.y);
+    }
+
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";

@@ -24,9 +24,9 @@ public class KDTree extends GenericTree {
         if(node== null){
             return new KDNode(point);
         }
-        int dimension = depth%2;
-        if((dimension==0&& point.getX()<node.getPoint().getX())
-                ||(dimension==1 && point.getY()<node.getPoint().getY())){
+
+        int dimension = point.compareTo(node.getPoint(),depth);
+        if(dimension<0){
             node.setLeft(insertHelper(node.getLeft(),point,depth+1));
 
         }else {
@@ -155,4 +155,19 @@ public class KDTree extends GenericTree {
     public int compareTo(Object o) {
         return 0;
     }
+
+    public KDNode getRoot(){
+        return this.root;
+    }
+    public void printKDTree(KDNode node, int depth) {
+        if (node == null) return;
+
+        // Indent based on the depth of the tree
+        String indent = " ".repeat(depth * 2);
+
+        System.out.println(indent + node.getPoint().toString());
+        printKDTree(node.getLeft(), depth + 1);
+        printKDTree(node.getRight(), depth + 1);
+    }
+
 }
