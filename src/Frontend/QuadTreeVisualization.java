@@ -44,17 +44,26 @@ public class QuadTreeVisualization extends JPanel {
         if (node != null) {
             ShapeNodeStyle nodeStyle = new ShapeNodeStyle();
             nodeStyle.setPen(Pen.getBlack());
-            nodeStyle.setPaint(node.isLeaf? Color.GREEN:Color.YELLOW);
-            RectD bounds = new RectD(0,0,30,20);
-            INode yNode = graph.createNode(null, bounds, nodeStyle, null);
-            graph.addLabel(yNode, node.toString());
+            nodeStyle.setPaint(node.isLeaf ? Color.GREEN:Color.YELLOW);
 
+            if(node.isLeaf){
+                nodeStyle.setPaint(Color.GREEN);
+                if(node.points.isEmpty()){
+                    nodeStyle.setPaint(Color.YELLOW);
+                }
+            }
+            else {
+                nodeStyle.setPaint(Color.GREEN);
 
-            if (parent != null) {
-                graph.createEdge(parent, yNode);
             }
 
 
+            RectD bounds = new RectD(0,0,30,20);
+            INode yNode = graph.createNode(null, bounds, nodeStyle, null);
+            graph.addLabel(yNode, node.toString());
+            if (parent != null) {
+                graph.createEdge(parent, yNode);
+            }
             if (!node.isLeaf) {
                 visualizeHierarchicalComponent(node.NE, yNode);
                 visualizeHierarchicalComponent(node.NW, yNode);
@@ -63,6 +72,7 @@ public class QuadTreeVisualization extends JPanel {
             }
         }
     }
+
     private void applyHierarchicLayout() {
         HierarchicLayout layout = new HierarchicLayout();
         layout.setMinimumLayerDistance(50);
@@ -88,7 +98,7 @@ public class QuadTreeVisualization extends JPanel {
         }
 
         private void drawQuadTree(Graphics g, QuadTreeNode node) {
-            g.setColor(Color.BLUE);
+            g.setColor(Color.black);
             g.drawRect(node.bounds.x, node.bounds.y, node.bounds.width, node.bounds.height);
             g.setColor(Color.RED);
             for (Point point : node.points) {
@@ -118,6 +128,7 @@ public class QuadTreeVisualization extends JPanel {
             quadTree.insert(new Point(220, 80));
             quadTree.insert(new Point(30, 120));
             quadTree.insert(new Point(190, 340));
+            quadTree.insert(new Point(350, 350));
 
             QuadTreeVisualization visualizationPanel = new QuadTreeVisualization(quadTree);
             frame.add(visualizationPanel);
