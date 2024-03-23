@@ -3,14 +3,19 @@ package Frontend;
 import Backend.Point;
 import Backend.QuadTree;
 import Backend.QuadTreeNode;
+import com.yworks.yfiles.geometry.InsetsD;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
+import com.yworks.yfiles.graph.ILabel;
 import com.yworks.yfiles.graph.INode;
+import com.yworks.yfiles.graph.labelmodels.ILabelModelParameter;
+import com.yworks.yfiles.graph.labelmodels.InteriorLabelModel;
+import com.yworks.yfiles.graph.styles.DefaultLabelStyle;
 import com.yworks.yfiles.graph.styles.ShapeNodeStyle;
 import com.yworks.yfiles.layout.hierarchic.HierarchicLayout;
 import com.yworks.yfiles.view.GraphComponent;
 import com.yworks.yfiles.view.Pen;
-import com.yworks.yfiles.view.input.GraphEditorInputMode;
+import com.yworks.yfiles.view.input.GraphViewerInputMode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +34,7 @@ public class QuadTreeVisualization extends JPanel {
     }
 
     private void initUI() {
-        graphComponent.setInputMode(new GraphEditorInputMode());
+        graphComponent.setInputMode(new GraphViewerInputMode());
         visualizeHierarchicalComponent(quadTree.getRoot(), null);
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, spatialPanel, graphComponent);
@@ -57,10 +62,19 @@ public class QuadTreeVisualization extends JPanel {
 
             }
 
-
-            RectD bounds = new RectD(0,0,30,20);
+            RectD bounds = new RectD(0,0,50,30);
             INode yNode = graph.createNode(null, bounds, nodeStyle, null);
-            graph.addLabel(yNode, node.toString());
+            DefaultLabelStyle labelStyle = new DefaultLabelStyle();
+            labelStyle.setFont(new Font("Arial", Font.PLAIN, 10));
+            labelStyle.setInsets(new InsetsD(2));
+            InteriorLabelModel interiorLabelModel = new InteriorLabelModel();
+            ILabelModelParameter labelModelParameter = interiorLabelModel.createParameter(InteriorLabelModel.Position.CENTER);
+
+            ILabel label = graph.addLabel(yNode, node.toString(), labelModelParameter, labelStyle);
+
+            graph.setLabelPreferredSize(label, bounds.toSizeD());
+            //graph.addLabel(yNode, node.toString());
+
             if (parent != null) {
                 graph.createEdge(parent, yNode);
             }

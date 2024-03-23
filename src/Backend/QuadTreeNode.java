@@ -21,29 +21,63 @@ public class QuadTreeNode {
     }
 
     void insert(Point point, int maxDepth) {
-        if (isLeaf&& depth<maxDepth){
-            subdivide();
-            isLeaf=false;
-            List<Point> newPoint = new ArrayList<>(points);
-            points.clear();
-            for (Point p: newPoint){
-                insert(p,maxDepth);
-            }
-        }
+        if (isLeaf) {
+            if (depth >= maxDepth) {
+                points.add(point);
+            } else {
+                points.add(point);
+                if (points.size() >= 2) {
+                    subdivide();
+                    isLeaf = false;
+                    List<Point> newPoint = new ArrayList<>(points);
+                    points.clear();
+                    for (Point p : newPoint) {
+                        insertIntoChild(p, maxDepth);
+                    }
+                    //points.clear();
+                }
 
-        if(!isLeaf) {
-            if (NE.bounds.contains(point.getX(), point.getY())) {
-                NE.insert(point, maxDepth);
-            } else if (NW.bounds.contains(point.getX(), point.getY())) {
-                NW.insert(point, maxDepth);
-            } else if (SE.bounds.contains(point.getX(), point.getY())) {
-                SE.insert(point, maxDepth);
-            } else if (SW.bounds.contains(point.getX(), point.getY())) {
-                SW.insert(point, maxDepth);
             }
+
+
         }
-        else {
-            points.add(point);
+        else{
+            insertIntoChild(point, maxDepth);
+        }
+    }
+//        else if (!isLeaf){
+//            insertIntoChild(point,maxDepth);
+//        }
+//        else {
+//            points.add(point);
+//        }
+
+//        if(!isLeaf) {
+//            if (NE.bounds.contains(point.getX(), point.getY())) {
+//                NE.insert(point, maxDepth);
+//            } else if (NW.bounds.contains(point.getX(), point.getY())) {
+//                NW.insert(point, maxDepth);
+//            } else if (SE.bounds.contains(point.getX(), point.getY())) {
+//                SE.insert(point, maxDepth);
+//            } else if (SW.bounds.contains(point.getX(), point.getY())) {
+//                SW.insert(point, maxDepth);
+//            }
+//        }
+//        else {
+//            points.add(point);
+//        }
+
+
+
+    private void insertIntoChild(Point point, int maxDepth) {
+        if (NE.bounds.contains(point.getX(), point.getY())) {
+            NE.insert(point, maxDepth);
+        } else if (NW.bounds.contains(point.getX(), point.getY())) {
+            NW.insert(point, maxDepth);
+        } else if (SE.bounds.contains(point.getX(), point.getY())) {
+            SE.insert(point, maxDepth);
+        } else if (SW.bounds.contains(point.getX(), point.getY())) {
+            SW.insert(point, maxDepth);
         }
     }
 
