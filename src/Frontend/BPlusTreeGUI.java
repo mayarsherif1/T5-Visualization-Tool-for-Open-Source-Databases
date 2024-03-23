@@ -45,11 +45,8 @@ public class BPlusTreeGUI extends JFrame {
     private INode createGraphForTree(BPlusTreeNode node, IGraph graph, INode parent) {
         System.out.println("creating graph node for: " + node);
         System.out.println("node keys: " + node.getKeys());
-
         double width = 50 + node.getKeys().size() * 10;
         double height = 30;
-
-
         INode newNode = graph.createNode(new RectD(0, 0, width, height));
         graph.addLabel(newNode, node.getKeys().toString());
 

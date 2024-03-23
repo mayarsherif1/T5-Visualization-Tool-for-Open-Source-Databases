@@ -7,9 +7,11 @@ import java.util.Map;
 
 public class Database {
     private Map<String,Table> tables;
+    private Map<String,Index> indexes;
 
     public Database(){
         this.tables=new HashMap<>();
+        this.indexes= new HashMap<>();
     }
 
     public void addTable(Table table){
@@ -53,6 +55,28 @@ public class Database {
             System.out.println("Table " + tableName + " already exists.");
         }
     }
+
+    public void createIndex(String indexName, String tableName, List<String> columnNames) throws TableNotFoundException {
+        if (!tables.containsKey(tableName)) {
+            throw new TableNotFoundException(tableName);
+        }
+        if (indexes.containsKey(indexName)) {
+            System.out.println("Index " + indexName + " already exists.");
+            return;
+        }
+        Index index = new Index(indexName, tableName, columnNames);
+        indexes.put(indexName, index);
+        System.out.println("Index " + indexName + " created on table " + tableName);
+    }
+
+    public Index getIndex(String indexName) {
+        return indexes.get(indexName);
+    }
+
+    public boolean containsIndex(String indexName) {
+        return indexes.containsKey(indexName);
+    }
+
 
     public void insertDefValuesToTable(String tableName){
         Table table = tables.get(tableName);

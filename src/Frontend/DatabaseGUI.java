@@ -81,7 +81,6 @@ public class DatabaseGUI extends JFrame {
             }
         });
 
-
         ParseTree tree = parser.stmt();
         NewSQLListener listener = new NewSQLListener(database);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
@@ -89,12 +88,38 @@ public class DatabaseGUI extends JFrame {
             parseCreateTable(sql);
         } else if (sql.trim().toUpperCase().startsWith("INSERT INTO")) {
             parseInsertInto(sql);
+        } else if (sql.trim().toUpperCase().startsWith("CREATE INDEX")) {
+            parseCreateIndex(sql);
+
         }
 
         updateGraph();
         updateTableSelector();
         updateDataTable((String) tableSelector.getSelectedItem());
     }
+
+    private void parseCreateIndex(String sql) {
+        Pattern pattern = Pattern.compile(
+                "CREATE INDEX (\\w+) ON (\\w+)\\s*\\(([^)]+)\\)",
+                Pattern.CASE_INSENSITIVE
+        );
+        Matcher matcher = pattern.matcher(sql);
+        if (matcher.find()) {
+            String indexName = matcher.group(1);
+            String tableName = matcher.group(2);
+            String[] columns = matcher.group(3).split("\\s*,\\s*");
+
+            try {
+                database.createIndex(indexName, tableName, Arrays.asList(columns));
+                JOptionPane.showMessageDialog(this, "Index " + indexName + " created successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (TableNotFoundException e) {
+                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid CREATE INDEX syntax.", "Syntax Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void updateGraph() {
         IGraph graph = graphComponent.getGraph();
         graph.clear();
@@ -183,6 +208,9 @@ public class DatabaseGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+
 
     public static void main(String[] args) {
         Database database = new Database();
