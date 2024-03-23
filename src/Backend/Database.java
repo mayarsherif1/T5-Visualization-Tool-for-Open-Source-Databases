@@ -14,6 +14,8 @@ public class Database {
 
     public void addTable(Table table){
         tables.put(table.getName(), table);
+        System.out.println("Table inside database: "+ tables.get(table.getName()));
+
     }
 
     public Table getTable(String tableName) throws TableNotFoundException{
@@ -28,13 +30,15 @@ public class Database {
         return new ArrayList<>(tables.values());
     }
 
-    public void insertIntoTable(String tableName, List<String> columnNames, List<String> values){
+    public void insertIntoTable(String tableName, List<String> columnNames, List<String> values) throws TableNotFoundException {
         Table table = tables.get(tableName);
+
         if(table!=null){
             table.insertRow(columnNames,values);
+            System.out.println("Table row inside database: "+ table.getRows());
         }
         else {
-            System.out.println("Table " + tableName + " does not exist.");
+            throw new TableNotFoundException(tableName);
         }
     }
     public void createTable(String tableName, List<Column> columns){
@@ -81,4 +85,12 @@ public class Database {
         }
     }
 
+
+    public String[] getTableNames() {
+        return tables.keySet().toArray(new String[0]);
+    }
+
+    public boolean containsTable(String tableName) {
+        return tables.containsKey(tableName);
+    }
 }

@@ -14,6 +14,7 @@
       <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation.zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-neo4j/integration/neo4j/src/main/java" />
       <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation.zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-pdf" />
       <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation.zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-svg" />
+      <root url="jar://$PROJECT_DIR$/src/lib/antlr-4.9.3-complete.jar!/" />
     </SOURCES>
   </library>
 </component>

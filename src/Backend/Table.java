@@ -9,6 +9,7 @@ public class Table {
     private String name;
     private List<Column> columns;
     private List<Map<String, String>> rows;
+    private List<Page> pages;
 
     public Table(String name){
         this.name=name;

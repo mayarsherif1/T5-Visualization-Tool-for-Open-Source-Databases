@@ -205,6 +205,8 @@ public class TreeVisualization extends JPanel {
         tablesPanel.revalidate();
         tablesPanel.repaint();
     }
+
+
     public void addColumnToTable(String tableName, String columnName, String columnType) throws TableNotFoundException {
         Table table = database.getTable(tableName);
         if (table != null) {
@@ -401,16 +403,16 @@ public class TreeVisualization extends JPanel {
     }
 
 
-    private Node buildTree(ParseTree tree) {
-        if(tree.getChildCount()==0){
-            return new Node(tree.getText());
-        }
-        Node node = new Node(tree.getClass().getSimpleName().replace("Context",""));
-        for(int i=0; i<tree.getChildCount();i++){
-            node.addChild(buildTree(tree.getChild(i)));
-        }
-        return node;
-    }
+//    private Node buildTree(ParseTree tree) {
+//        if(tree.getChildCount()==0){
+//            return new Node(tree.getText());
+//        }
+//        Node node = new Node(tree.getClass().getSimpleName().replace("Context",""));
+//        for(int i=0; i<tree.getChildCount();i++){
+//            node.addChild(buildTree(tree.getChild(i)));
+//        }
+//        return node;
+//    }
 
 
 
