@@ -3,10 +3,34 @@ package Backend;
 public class Point implements Comparable<Point>{
     private int x;
     private int y;
+    private String labelX;
+    private String labelY;
     public Point(int x, int y){
         this.x=x;
         this.y=y;
     }
+    public Point(int x, int y, String labelX, String labelY){
+        this.x=x;
+        this.y=y;
+        this.labelX=labelX;
+        this.labelY=labelY;
+    }
+
+    public String getLabelX() {
+        return labelX;
+    }
+    public String getLabelY() {
+        return labelY;
+    }
+
+    public void setLabelX(String labelX) {
+        this.labelX = labelX;
+    }
+    public void setLabelY(String labelY) {
+        this.labelY = labelY;
+    }
+
+
     public int getX() {
         return x;
     }
@@ -32,7 +56,7 @@ public class Point implements Comparable<Point>{
 
     @Override
     public String toString() {
-        return "(" + x + ", " + y + ")";
+        return labelX + ": " + x + ", " + labelY + ": " + y;
     }
     @Override
     public boolean equals(Object o){

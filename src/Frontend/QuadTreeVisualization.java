@@ -136,13 +136,13 @@ public class QuadTreeVisualization extends JPanel {
 
             Rectangle boundary = new Rectangle(0, 0, 400, 400);
             QuadTree quadTree = new QuadTree(boundary, 4);
-            quadTree.insert(new Point(30, 20));
-            quadTree.insert(new Point(110, 160));
-            quadTree.insert(new Point(310, 320));
-            quadTree.insert(new Point(220, 80));
-            quadTree.insert(new Point(30, 120));
-            quadTree.insert(new Point(190, 340));
-            quadTree.insert(new Point(350, 350));
+            quadTree.insert(new Point(30, 20, "X", "Y"));
+            quadTree.insert(new Point(110, 160, "X", "Y"));
+            quadTree.insert(new Point(310, 320, "X", "Y"));
+            quadTree.insert(new Point(220, 80, "X", "Y"));
+            quadTree.insert(new Point(30, 120, "X", "Y"));
+            quadTree.insert(new Point(190, 340, "X", "Y"));
+            quadTree.insert(new Point(350, 350, "X", "Y"));
 
             QuadTreeVisualization visualizationPanel = new QuadTreeVisualization(quadTree);
             frame.add(visualizationPanel);

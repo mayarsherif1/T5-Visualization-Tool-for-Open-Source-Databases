@@ -85,11 +85,11 @@ public class DatabaseGUI extends JFrame {
         NewSQLListener listener = new NewSQLListener(database);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
         if (sql.trim().toUpperCase().startsWith("CREATE TABLE")) {
-            parseCreateTable(sql);
+            getCreateTable(sql);
         } else if (sql.trim().toUpperCase().startsWith("INSERT INTO")) {
-            parseInsertInto(sql);
+            getInsertInto(sql);
         } else if (sql.trim().toUpperCase().startsWith("CREATE INDEX")) {
-            parseCreateIndex(sql);
+            getCreateIndex(sql);
 
         }
 
@@ -98,7 +98,7 @@ public class DatabaseGUI extends JFrame {
         updateDataTable((String) tableSelector.getSelectedItem());
     }
 
-    private void parseCreateIndex(String sql) {
+    private void getCreateIndex(String sql) {
         Pattern pattern = Pattern.compile(
                 "CREATE INDEX (\\w+) ON (\\w+)\\s*\\(([^)]+)\\)",
                 Pattern.CASE_INSENSITIVE
@@ -130,7 +130,7 @@ public class DatabaseGUI extends JFrame {
 
         graphComponent.fitGraphBounds();
     }
-    private void parseCreateTable(String sql) {
+    private void getCreateTable(String sql) {
         Pattern createTablePattern = Pattern.compile("CREATE TABLE (\\w+) \\((.*)\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = createTablePattern.matcher(sql);
         if (matcher.find()) {
@@ -154,7 +154,7 @@ public class DatabaseGUI extends JFrame {
         return columns;
     }
 
-    private void parseInsertInto(String sql) throws TableNotFoundException {
+    private void getInsertInto(String sql) throws TableNotFoundException {
         Pattern insertIntoPattern = Pattern.compile("INSERT INTO (\\w+) \\((.*)\\) VALUES \\((.*)\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = insertIntoPattern.matcher(sql);
         if (matcher.find()) {
