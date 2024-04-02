@@ -161,8 +161,6 @@ public class KDTree extends GenericTree {
     }
     public void printKDTree(KDNode node, int depth) {
         if (node == null) return;
-
-        // Indent based on the depth of the tree
         String indent = " ".repeat(depth * 2);
 
         System.out.println(indent + node.getPoint().toString());

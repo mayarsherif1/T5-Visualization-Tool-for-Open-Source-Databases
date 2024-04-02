@@ -15,9 +15,29 @@ public class Node {
     }
 
     public void addChild(Node child) {
-        child.setParent(this);
         this.children.add(child);
+        child.setParent(this);
     }
+
+    public void addChild(int index, Node child) {
+        if (index < 0 || index > children.size()) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + children.size());
+        }
+        this.children.add(index, child);
+        child.setParent(this);
+    }
+
+    public Node removeChildAtIndex(int index) {
+        if (index >= 0 && index < this.children.size()) {
+            Node childToRemove = this.children.get(index);
+            this.children.remove(index);
+            childToRemove.setParent(null);
+            return childToRemove;
+        }
+        return null;
+    }
+
+
     public void addChildren(List<Node> newChildren){
         for(Node child: newChildren){
             addChild(child);
