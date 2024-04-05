@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Point;
 import java.awt.*;
@@ -119,14 +118,6 @@ public class TreeVisualization extends JPanel {
 
     }
 
-//    private void testStaticContent() {
-//        JLabel testTreeLabel = new JLabel("Test Tree Content");
-//        treePanel.add(testTreeLabel);
-//
-//        JLabel testTableLabel = new JLabel("Test Table: 5 pages, 100 rows");
-//        testTableLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//        tablesPanel.add(testTableLabel);
-//    }
 
     private void setSqlPanel() {
         JPanel sqlPanel = new JPanel();
@@ -201,9 +192,9 @@ public class TreeVisualization extends JPanel {
             String[] columnNames = matcher.group(2).trim().split("\\s*,\\s*");
             String[] values = matcher.group(3).trim().split("\\s*,\\s*(?=(?:[^']*'[^']*')*[^']*$)");
 
-            System.out.println("/n Table Name: " + tableName); // Debugging
-            System.out.println("Column Names: " + Arrays.toString(columnNames)); // Debugging
-            System.out.println("Values: " + Arrays.toString(values)); // Debugging
+            System.out.println("/n Table Name: " + tableName);
+            System.out.println("Column Names: " + Arrays.toString(columnNames));
+            System.out.println("Values: " + Arrays.toString(values));
 
             try {
 
@@ -247,6 +238,7 @@ public class TreeVisualization extends JPanel {
                 //tablePanel.add(columnLabel);
             }
             jTable.setModel(model);
+            jTable.setName(table.getName());
             //tablesPanel.add(tablePanel);
             JScrollPane scrollPane=new JScrollPane(jTable);
             scrollPane.setBorder(BorderFactory.createTitledBorder(table.getName()));
@@ -283,20 +275,20 @@ public class TreeVisualization extends JPanel {
         return rootNode;
     }
 
-    private void refreshTablesPanel() {
-        tablesPanel.removeAll();
-        for(Table table: database.getAllTables()){
-            JPanel tablePanel = new JPanel();
-            tablePanel.setBorder(BorderFactory.createTitledBorder(table.getName().toLowerCase()));
-            for(Column column : table.getColumns()){
-                JLabel columnLabel = new JLabel(column.getName()+" ("+ column.getType()+ ")");
-                tablePanel.add(columnLabel);
-            }
-            tablesPanel.add(tablePanel);
-        }
-        tablesPanel.revalidate();
-        tablesPanel.repaint();
-    }
+//    private void refreshTablesPanel() {
+//        tablesPanel.removeAll();
+//        for(Table table: database.getAllTables()){
+//            JPanel tablePanel = new JPanel();
+//            tablePanel.setBorder(BorderFactory.createTitledBorder(table.getName().toLowerCase()));
+//            for(Column column : table.getColumns()){
+//                JLabel columnLabel = new JLabel(column.getName()+" ("+ column.getType()+ ")");
+//                tablePanel.add(columnLabel);
+//            }
+//            tablesPanel.add(tablePanel);
+//        }
+//        tablesPanel.revalidate();
+//        tablesPanel.repaint();
+//    }
 
     private void setCreateTable(ParseTree tree) {
         String tableName = getTableName(tree);
@@ -417,38 +409,6 @@ public class TreeVisualization extends JPanel {
     }
 
 
-    //    private void CreateTableTab(String sql) {
-//        JTextField pagesField = new JTextField("1");
-//        JTextField rowsField = new JTextField("10");
-//        Object[] message = {
-//                "Pages: ", pagesField,
-//                "Rows: ", rowsField
-//        };
-//        int option = JOptionPane.showConfirmDialog(null,message, "Enter Table Details", JOptionPane.OK_CANCEL_OPTION);
-//        if(option==JOptionPane.OK_OPTION) {
-//            try {
-//                int pages = Integer.parseInt(pagesField.getText());
-//                int rows = Integer.parseInt(rowsField.getText());
-//                Pattern pattern = Pattern.compile("CREATE TABLE (\\w+) \\((.*)\\)", Pattern.CASE_INSENSITIVE);
-//                Matcher matcher = pattern.matcher(sql);
-//                if(matcher.find()){
-//                    String tableName = matcher.group(1);
-//                    String columnsPart = matcher.group(2);
-//                    List<Column> columns = parseColumns(columnsPart);
-//                    database.createTable(tableName, columns);
-//                    updateTableVis(tableName, pages, rows);
-//                }
-//                else {
-//                    JOptionPane.showMessageDialog(this, "Table name not found in the command.", "Error", JOptionPane.ERROR_MESSAGE);
-//                }
-//            }
-//            catch (NumberFormatException e){
-//                JOptionPane.showMessageDialog(this, "Invalid number format.", "Error", JOptionPane.ERROR_MESSAGE);
-//            } catch (TableNotFoundException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
     private List<Column> parseColumns(String columnsPart) {
         List<Column> columns = new ArrayList<>();
         String[] columnDefinitions = columnsPart.split(",");
@@ -465,114 +425,187 @@ public class TreeVisualization extends JPanel {
 
     public void updateTableVis(String tableName,int pages,int rows) throws TableNotFoundException {
         displayPages(tableName,pages,rows);
-        if (tables.containsKey(tableName.toLowerCase())){
-            JLabel tableLabel =(JLabel) tables.get(tableName.toLowerCase());
-            tableLabel.setText(String.format("%s: %d pages,%d rows", tableName, pages, rows));
-
+        if (tables.containsKey(tableName)){
+            JScrollPane scrollPane = (JScrollPane) tables.get(tableName);
+            JTable table = (JTable) scrollPane.getViewport().getView();
+            updateTableData(table, tableName);
+//            JLabel tableLabel =(JLabel) tables.get(tableName.toLowerCase());
+//            tableLabel.setText(String.format("%s: %d pages,%d rows", tableName, pages, rows));
         }
         else {
-            JLabel tableLabel = new JLabel(String.format("%s: %d pages,%d rows", tableName, pages, rows));
-            System.out.print(tableLabel);
-            tableLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            tableLabel.setPreferredSize(new Dimension(200, 50));
-            tables.put(tableName, tableLabel);
-            tablesPanel.add(tableLabel);
+            DefaultTableModel model = new DefaultTableModel();
+            for (Column column : database.getTable(tableName).getColumns()) {
+                model.addColumn(column.getName());
+            }
+
+            JTable table = new JTable(model);
+            JScrollPane scrollPane = new JScrollPane(table);
+            scrollPane.setBorder(BorderFactory.createTitledBorder(String.format("%s: %d pages, %d rows", tableName, pages, rows)));
+
+            tables.put(tableName, scrollPane);
+            tablesPanel.add(scrollPane);
+
+//            JLabel tableLabel = new JLabel(String.format("%s: %d pages,%d rows", tableName, pages, rows));
+//            System.out.print(tableLabel);
+//            tableLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+//            tableLabel.setPreferredSize(new Dimension(200, 50));
+//            tables.put(tableName, tableLabel);
+//            tablesPanel.add(tableLabel);
         }
         tablesPanel.revalidate();
         tablesPanel.repaint();
+    }
+
+    private void updateTableData(JTable table, String tableName) throws TableNotFoundException {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+        Table backendTable = database.getTable(tableName);
+
+        for (Map<String, String> row : backendTable.getRows()) {
+            Vector<Object> rowData = new Vector<>();
+            for (Column column : backendTable.getColumns()) {
+                rowData.add(row.get(column.getName()));
+            }
+
+            model.addRow(rowData);
+        }
     }
 
     private void displayPages(String tableName, int pages, int rows) throws TableNotFoundException {
         tablesPanel.removeAll();
-        tablesPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-
+        tablesPanel.setLayout(new BoxLayout(tablesPanel, BoxLayout.X_AXIS));
         Table table = database.getTable(tableName);
-
-        List<Column> columns = table.getColumns();
+        List<Map<String, String>> allRows = table.getRows();
+        int totalRows = allRows.size();
+        int startRow = 0;
 
         for (int pageIndex = 0; pageIndex < pages; pageIndex++) {
-            JPanel pagePanel = new JPanel(new BorderLayout());
-            pagePanel.setBorder(BorderFactory.createTitledBorder("Page " + (pageIndex + 1)));
-            JPanel headerPanel = new JPanel(new GridLayout(1, columns.size()));
-            for (Column column : columns) {
-                JLabel headerLabel = new JLabel(column.getName());
-                headerLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                headerPanel.add(headerLabel);
-            }
-            pagePanel.add(headerPanel, BorderLayout.NORTH);
-            JPanel rowsPanel = new JPanel(new GridLayout(rows, 1));
-            for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
-                JPanel rowPanel = new JPanel(new GridLayout(1, columns.size()));
-                for (Column column : columns) {
-                    JLabel cellLabel = new JLabel();
-                    cellLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    rowPanel.add(cellLabel);
-                }
-                rowsPanel.add(rowPanel);
-            }
-            pagePanel.add(rowsPanel, BorderLayout.CENTER);
-            tablesPanel.add(pagePanel);
-        }
+            int endRow = Math.min(startRow + rows, totalRows);
+            List<Map<String, String>> pageRows = allRows.subList(startRow, endRow);
+            DefaultTableModel model = new DefaultTableModel();
 
+
+            for (Column column : table.getColumns()) {
+                model.addColumn(column.getName());
+            }
+            for (Map<String, String> rowData : pageRows) {
+                model.addRow(rowData.values().toArray());
+            }
+            JTable pageTable = new JTable(model);
+            pageTable.setPreferredScrollableViewportSize(new Dimension(200, pageTable.getRowHeight() * rows));
+            JScrollPane scrollPane = new JScrollPane(pageTable);
+            scrollPane.setBorder(BorderFactory.createTitledBorder("Page " + (pageIndex + 1)));
+            tablesPanel.add(scrollPane);
+            startRow = endRow;
+
+        }
+        tablesPanel.setPreferredSize(new Dimension(200, 200));
         tablesPanel.revalidate();
         tablesPanel.repaint();
     }
 
 
-//    private void displayPages(String tableName, int pages, int rows){
+    //    private void displayPages(String tableName, int pages, int rows) throws TableNotFoundException {
 //        tablesPanel.removeAll();
 //        tablesPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-//        for (int pageIndex =0; pageIndex< pages; pageIndex++){
-//            JPanel pagePanel = new JPanel(new GridLayout(rows, 1));
-//            pagePanel.setBorder(BorderFactory.createTitledBorder("Page "+ (pageIndex+1)));
-//            pagePanel.setPreferredSize(new Dimension(100,rows*20));
-//            for(int rowIndex =0; rowIndex<rows; rowIndex++){
-//                JLabel rowLabel = new JLabel("Row "+(rowIndex+1));
-//                rowLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//                pagePanel.add(rowLabel);
+//
+//        Table table = database.getTable(tableName);
+//
+//        List<Column> columns = table.getColumns();
+//
+//        for (int pageIndex = 0; pageIndex < pages; pageIndex++) {
+//            JPanel pagePanel = new JPanel(new BorderLayout());
+//            pagePanel.setBorder(BorderFactory.createTitledBorder("Page " + (pageIndex + 1)));
+//            JPanel headerPanel = new JPanel(new GridLayout(1, columns.size()));
+//            for (Column column : columns) {
+//                JLabel headerLabel = new JLabel(column.getName());
+//                headerLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+//                headerPanel.add(headerLabel);
 //            }
+//            pagePanel.add(headerPanel, BorderLayout.NORTH);
+//            JPanel rowsPanel = new JPanel(new GridLayout(rows, 1));
+//            for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
+//                JPanel rowPanel = new JPanel(new GridLayout(1, columns.size()));
+//                for (Column column : columns) {
+//                    JLabel cellLabel = new JLabel();
+//                    cellLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+//                    rowPanel.add(cellLabel);
+//                }
+//                rowsPanel.add(rowPanel);
+//            }
+//            pagePanel.add(rowsPanel, BorderLayout.CENTER);
 //            tablesPanel.add(pagePanel);
 //        }
+//
 //        tablesPanel.revalidate();
 //        tablesPanel.repaint();
 //    }
+    public void refreshTablesPanel() {
+        tablesPanel.removeAll();
+        for (Table table : database.getAllTables()) {
+            JTable jTable = new JTable(toTableModel(table));
+            jTable.setName(table.getName());
+            JScrollPane scrollPane = new JScrollPane(jTable);
+            scrollPane.setBorder(BorderFactory.createTitledBorder(table.getName()));
+            tablesPanel.add(scrollPane);
+        }
+        tablesPanel.revalidate();
+        tablesPanel.repaint();
+    }
+    private DefaultTableModel toTableModel(Table table) {
+        DefaultTableModel model = new DefaultTableModel();
+        for (Column column : table.getColumns()) {
+            model.addColumn(column.getName());
+        }
+        for (Map<String, String> row : table.getRows()) {
+            model.addRow(row.values().toArray());
+        }
+        return model;
+    }
 
     private void insertIntoTable(String sql) {
         Pattern insertPattern = Pattern.compile("INSERT INTO (\\w+) \\(([^)]+)\\) VALUES \\(([^)]+)\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = insertPattern.matcher(sql);
         if (matcher.find()) {
-            String tableName = matcher.group(1).trim();
+            String tableName = matcher.group(1);
             String columnNames = matcher.group(2);
-            String values = matcher.group(3);
+            String valuesPart = matcher.group(3);
+            List<String> columns = Arrays.asList(columnNames.split(","));
+            List<String> values = Arrays.asList(valuesPart.split(","));
+            columns = columns.stream().map(String::trim).collect(Collectors.toList());
+            values = values.stream().map(String::trim).collect(Collectors.toList());
 
-            // Split column names and values
-            String[] columns = columnNames.split(",");
-            String[] splitValues = values.split(",");
-
-            // Trim whitespace from column names and values
-            for (int i = 0; i < columns.length; i++) {
-                columns[i] = columns[i].trim();
-            }
-            for (int i = 0; i < splitValues.length; i++) {
-                splitValues[i] = splitValues[i].trim();
-            }
-            System.out.println("Extracted table name: " + tableName);
-
-            if (tables.containsKey(tableName)) {
-                JTable table = findTableInUI(tableName);
-                if (table != null) {
-                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.addRow(splitValues);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Table not found in UI: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
+            List<String> finalColumns = columns;
+            List<String> finalValues = values;
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    database.insertIntoTable(tableName, finalColumns, finalValues);
+                    JTable table = findTableInUI(tableName);
+                    if (table != null) {
+                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+                        model.addRow(finalValues.toArray());
+                        //addRowToTable(tableName, finalValues);
+                        updateTableVis(tableName, getPages(), getRows());
+                        table.revalidate();
+                        table.repaint();
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(null, "Row did not insert.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    //updatePageAfterInsert(tableName);
+                    JOptionPane.showMessageDialog(null, "Row inserted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (TableNotFoundException e) {
+                    JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Table Not Found", JOptionPane.ERROR_MESSAGE);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-            }
+
+            });
         } else {
             JOptionPane.showMessageDialog(this, "Invalid insert statement", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
 
 
@@ -594,16 +627,29 @@ public class TreeVisualization extends JPanel {
         for (Component comp : tablesPanel.getComponents()) {
             if (comp instanceof JScrollPane) {
                 JScrollPane scrollPane = (JScrollPane) comp;
-                if (scrollPane.getBorder() != null && scrollPane.getBorder() instanceof TitledBorder) {
-                    TitledBorder border = (TitledBorder) scrollPane.getBorder();
-                    if (border.getTitle().equals(tableName)) {
-                        return (JTable) scrollPane.getViewport().getView();
-                    }
+                JTable table = (JTable) scrollPane.getViewport().getView();
+                if (table.getName().equals(tableName)) {
+                    return table;
                 }
             }
         }
         return null;
     }
+
+//    private JTable findTableInUI(String tableName) {
+//        for (Component comp : tablesPanel.getComponents()) {
+//            if (comp instanceof JScrollPane) {
+//                JScrollPane scrollPane = (JScrollPane) comp;
+//                if (scrollPane.getBorder() != null && scrollPane.getBorder() instanceof TitledBorder) {
+//                    TitledBorder border = (TitledBorder) scrollPane.getBorder();
+//                    if (border.getTitle().equals(tableName)) {
+//                        return (JTable) scrollPane.getViewport().getView();
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     private void updatePageAfterInsert(String tableName) {
         int rows = rowsCountPerTable.getOrDefault(tableName, 0) + 1;
@@ -620,28 +666,63 @@ public class TreeVisualization extends JPanel {
 
     public void addRowToTable(String tableName, List<String> values) {
         SwingUtilities.invokeLater(() -> {
-            JComponent component = tables.get(tableName.toLowerCase());
-            if (component instanceof JScrollPane) {
-                JScrollPane scrollPane = (JScrollPane) component;
+
+
+            JScrollPane scrollPane = (JScrollPane) tables.get(tableName);
+            if (scrollPane != null) {
+
                 JTable table = (JTable) scrollPane.getViewport().getView();
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                Object[] rowData = values.toArray(new Object[0]);
-                if (model.getRowCount() < getRowsPerPage(tableName)) {
-                    model.addRow(rowData);
+                int currentPage = getCurrentPageIndex(tableName);
+                int rowCount = rowsCountPerTable.getOrDefault(tableName, 0);
+                int maxRows = getRowsPerPage(tableName);
+                if (rowCount < maxRows * currentPage) {
+
+                    model.addRow(values.toArray(new Object[0]));
+                    rowsCountPerTable.put(tableName, rowCount + 1);
+
                 } else {
-                    try {
-                        createNewPageForTable(tableName, values);
-                    } catch (TableNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                    JOptionPane.showMessageDialog(null, "Error in addRowToTable: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
+
                 }
+
                 table.revalidate();
                 table.repaint();
             } else {
-                System.err.println("Table not found in UI: " + tableName);
+                JOptionPane.showMessageDialog(null, "Table not found in UI: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
+
+
+//    public void addRowToTable(String tableName, List<String> values) {
+//        SwingUtilities.invokeLater(() -> {
+//            JComponent component = tables.get(tableName.toLowerCase());
+//            if (component instanceof JScrollPane) {
+//                JScrollPane scrollPane = (JScrollPane) component;
+//                JTable table = (JTable) scrollPane.getViewport().getView();
+//                table.setName(tableName);
+//                DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                Object[] rowData = values.toArray(new Object[0]);
+//                if (model.getRowCount() < getRowsPerPage(tableName)) {
+//                    model.addRow(rowData);
+//                } else {
+//                    try {
+//                        createNewPageForTable(tableName, values);
+//                    } catch (TableNotFoundException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//                table.revalidate();
+//                table.repaint();
+//            } else {
+//                System.err.println("Table not found in UI: " + tableName);
+//            }
+//        });
+//    }
+
+
     private void createNewPageForTable(String tableName, List<String> values) throws TableNotFoundException {
         DefaultTableModel model = new DefaultTableModel();
         List<Column> columns = database.getTable(tableName).getColumns();
@@ -649,6 +730,7 @@ public class TreeVisualization extends JPanel {
             model.addColumn(col.getName());
         }
         JTable newTable = new JTable(model);
+        newTable.setName(tableName);
         model.addRow(values.toArray(new Object[0]));
         JScrollPane newScrollPane = new JScrollPane(newTable);
         newScrollPane.setBorder(BorderFactory.createTitledBorder("Page " + (getCurrentPageIndex(tableName) + 1)));
@@ -656,70 +738,6 @@ public class TreeVisualization extends JPanel {
         currentPages.put(tableName, getCurrentPageIndex(tableName) + 1);
         tablesPanel.revalidate();
         tablesPanel.repaint();
-    }
-
-
-
-//    public void addRowToTable(String tableName, List<String> values) {
-//        JComponent component = tables.get(tableName.toLowerCase());
-//        if (component instanceof JScrollPane) {
-//            JScrollPane scrollPane = (JScrollPane) component;
-//            JTable table = (JTable) scrollPane.getViewport().getView();
-//            DefaultTableModel model = (DefaultTableModel) table.getModel();
-//            Object[] rowData = values.toArray(new Object[0]);
-//            model.addRow(rowData);
-//            int newRowIndex = model.getRowCount() - 1;
-//            table.scrollRectToVisible(table.getCellRect(newRowIndex, 0, true));
-//        }
-//    }
-
-
-//    private void addRowToTable(String tableName, String[] rowData) {
-//        SwingUtilities.invokeLater(() -> {
-//            // Find the visual component (JTable) for the first page
-//            JTable table = getFirstPageTable(tableName);
-//            if (table != null) {
-//                DefaultTableModel model = (DefaultTableModel) table.getModel();
-//
-//                // Add the row to the table's model
-//                if (model.getColumnCount() == rowData.length) {
-//                    model.addRow(rowData);
-//                    System.out.println("Row added to table: " + tableName);
-//                } else {
-//                    System.err.println("Mismatch between column count and provided data length.");
-//                }
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-//            }
-//        });
-//    }
-
-//    private void addRowToTable(String tableName, String[] rowData) {
-//        SwingUtilities.invokeLater(() -> {
-//            JComponent tableComponent = tables.get(tableName.toLowerCase());
-//            if (tableComponent instanceof JScrollPane) {
-//                JTable table = (JTable) ((JScrollPane) tableComponent).getViewport().getView();
-//                DefaultTableModel model = (DefaultTableModel) table.getModel();
-//
-//                if (model.getColumnCount() == rowData.length) {
-//                    model.addRow(rowData);
-//                    System.out.println("Row added to table: " + tableName); // Debugging
-//                } else {
-//                    System.err.println("Mismatch between column count and provided data length."); // Debugging
-//                }
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-//            }
-//        });
-//    }
-
-    private JTable getFirstPageTable(String tableName) {
-        JComponent component = tables.get(tableName.toLowerCase());
-        if (component instanceof JScrollPane) {
-            JScrollPane scrollPane = (JScrollPane) component;
-            return (JTable) scrollPane.getViewport().getView();
-        }
-        return null;
     }
 
 
@@ -750,6 +768,9 @@ public class TreeVisualization extends JPanel {
     public int getRowsPerPage(String tableName) {
         return rowsPerPage.getOrDefault(tableName, 10);
     }
+
+    //Tree panel
+
 
 
 
