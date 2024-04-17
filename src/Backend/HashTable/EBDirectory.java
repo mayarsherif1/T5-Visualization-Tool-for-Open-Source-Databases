@@ -1,10 +1,10 @@
 package Backend.HashTable;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class EBDirectory implements EBPartitionedHashIndex{
 
-    private final EBBucketList[] bucketListArray;
+    private EBBucketList[] bucketListArray;
     private final int bitsAssigned;
     private final int pageSize;
 
@@ -23,6 +23,7 @@ public class EBDirectory implements EBPartitionedHashIndex{
         String binaryHash = Integer.toBinaryString(hash);
         return lastCharactersFromString(character('0', bitsAssigned) + binaryHash, bitsAssigned);
     }
+
     private String character(char c, int times) {
         String str = "";
         for (int i = 0; i < times; i++) {
@@ -44,14 +45,25 @@ public class EBDirectory implements EBPartitionedHashIndex{
         return true;
     }
     private int getEntryNumber(EBIndex index) {
-        String[] values = index.getValues();
-        String binary = "";
-        for (String value : values) {
-            binary += binaryHashCode(value);
+        if (index == null || index.getValues() == null) {
+            throw new IllegalArgumentException("Index and its values must not be null.");
         }
+        String[] values = index.getValues();
+        StringBuilder binaryBuilder = new StringBuilder();
+        for (String value : values) {
+            String binaryHash = binaryHashCode(value);
+            System.out.println("Binary hash code for value " + value + ": " + binaryHash);
+            binaryBuilder.append(binaryHash);
+        }
+        String binary = binaryBuilder.toString();
+        System.out.println("Concatenated binary string: " + binary);
 
-        return Integer.parseInt(binary, 2);
+        int entryNumber = Integer.parseInt(binary, 2);
+        System.out.println("Entry number (bucket number): " + entryNumber);
+
+        return entryNumber;
     }
+
     private int getMask(EBIndex index) {
         String[] values = index.getValues();
         String binary = "";
@@ -88,15 +100,20 @@ public class EBDirectory implements EBPartitionedHashIndex{
 
 
     @Override
-    public void addIndex(EBIndex index) {
+    public boolean addIndex(EBIndex index) {
         int entryNumber = getEntryNumber(index);
-
+        System.out.println("Adding index to bucket number: " + entryNumber + ", Index: " + Arrays.toString(index.getValues()));
         EBBucketList list = bucketListArray[entryNumber];
         if (list == null) {
-            list = bucketListArray[entryNumber] = new EBBucketList(this.pageSize);
+            list = new EBBucketList(this.pageSize);
+            bucketListArray[entryNumber] = list;
         }
-
-        list.addIndex(index);
+        boolean addedSuccessfully = list.addIndex(index);
+        if (!addedSuccessfully) {
+            System.out.println("Bucket " + entryNumber + " is full, needs splitting.");
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -172,4 +189,89 @@ public class EBDirectory implements EBPartitionedHashIndex{
         }
 
     }
+
+    public List<EBIndex> getIndexesForBucket(int bucketNumber) {
+        if(bucketNumber<0 || bucketNumber>=bucketListArray.length) {
+            return Collections.emptyList();
+        }
+
+        EBBucketList list = bucketListArray[bucketNumber];
+        if(list == null) {
+            return Collections.emptyList();
+        }
+        return list.getAllIndexes();
+    }
+
+    public int getNumberOfFilledBuckets() {
+        int count = 0;
+        for (EBBucketList bucketList : bucketListArray) {
+            if (bucketList != null && !bucketList.isEmpty()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public void splitBucket(int bucketIndex) {
+        if (bucketIndex >= bucketListArray.length || bucketListArray[bucketIndex] == null) {
+            return;
+        }
+        EBBucketList originalBucket = bucketListArray[bucketIndex];
+        if (originalBucket == null) return;
+        int localDepth = originalBucket.getLocalDepth();
+        int globalDepth = calculateGlobalDepth();
+
+        if (localDepth >= globalDepth) {
+            resizeDirectory();
+            globalDepth++;
+        }
+
+        int newBucketIndex = bucketIndex + (1 << localDepth);
+        if (newBucketIndex >= bucketListArray.length) {
+            resizeDirectory();
+        }
+        EBBucketList newBucket = new EBBucketList(this.pageSize);
+        newBucket.setLocalDepth(localDepth + 1);
+        bucketListArray[newBucketIndex] = newBucket;
+        originalBucket.setLocalDepth(localDepth + 1);
+        redistributeEntries(originalBucket, newBucket, bucketIndex, newBucketIndex, localDepth + 1);
+    }
+
+    private void resizeDirectory() {
+        EBBucketList[] newDirectory = new EBBucketList[bucketListArray.length * 2];
+        for (int i = 0; i < bucketListArray.length; i++) {
+            newDirectory[i] = bucketListArray[i];
+            newDirectory[i + bucketListArray.length] = new EBBucketList(pageSize);
+        }
+        bucketListArray = newDirectory;
+    }
+
+
+    private void redistributeEntries(EBBucketList originalBucket, EBBucketList newBucket, int oldIndex, int newIndex, int depth) {
+        Iterator<EBIndex> iterator = originalBucket.getAllIndexes().iterator();
+        while (iterator.hasNext()) {
+            EBIndex index = iterator.next();
+            if (index == null) continue;
+            int entryNumber = getEntryNumber(index) & ((1 << depth) - 1);
+            if (entryNumber == newIndex) {
+                newBucket.addIndex(index);
+                iterator.remove();
+            }
+        }
+    }
+
+    public int getGlobalDepth() {
+        return calculateGlobalDepth();
+    }
+    private int calculateGlobalDepth() {
+        if (bucketListArray != null && bucketListArray.length > 0) {
+            return (int) (Math.log(bucketListArray.length) / Math.log(2));
+        }
+        return 0;
+    }
+    public int getBucketIndex(EBIndex index) {
+        int hash = index.hashCode();
+        return hash & (this.bucketListArray.length - 1);
+    }
+
 }

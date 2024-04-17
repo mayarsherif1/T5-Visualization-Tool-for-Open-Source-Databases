@@ -2,21 +2,21 @@ package Backend;
 
 import java.util.ArrayList;
 
-public class BPlusTree {
-    private BPlusTreeNode root;
+public class BPlusTree<T extends Comparable<T>> {
+    private BPlusTreeNode<T> root;
     private final int order;
 
     public BPlusTree(int order) {
         this.order = order;
-        this.root = new BPlusTreeNode(order, true);
+        this.root = new BPlusTreeNode<>(order, true);
     }
 
-    private BPlusTreeNode search(BPlusTreeNode root, int key) {
-        BPlusTreeNode current = root;
+    private BPlusTreeNode<T> search(BPlusTreeNode<T> root, T key) {
+        BPlusTreeNode<T> current = root;
         while (!current.isLeaf) {
             int i = 0;
             while (i < current.keys.size()) {
-                if (key < current.keys.get(i)) {
+                if (key.compareTo(current.keys.get(i)) < 0) {
                     current = current.children.get(i);
                     break;
                 }
@@ -29,35 +29,37 @@ public class BPlusTree {
         }
         return current;
     }
-    public void insert(int key) {
-        BPlusTreeNode leaf = search(root, key);
+
+    public void insert(T key) {
+        BPlusTreeNode<T> leaf = search(root, key);
         if (leaf.keys.size() < order - 1) {
             insertInLeafBPlusTreeNode(leaf, key);
         } else {
-            BPlusTreeNode newLeaf = splitLeafBPlusTreeNode(leaf, key);
+            BPlusTreeNode<T> newLeaf = splitLeafBPlusTreeNode(leaf, key);
             //insertInParent(leaf, newLeaf.keys.get(0), newLeaf);
         }
     }
 
-    private void insertInLeafBPlusTreeNode(BPlusTreeNode BPlusTreeNode, int key) {
+    private void insertInLeafBPlusTreeNode(BPlusTreeNode<T> BPlusTreeNode, T key) {
         int i = 0;
-        while (i < BPlusTreeNode.keys.size() && key > BPlusTreeNode.keys.get(i)) {
+        while (i < BPlusTreeNode.keys.size() && key.compareTo(BPlusTreeNode.keys.get(i)) > 0) {
             i++;
         }
         BPlusTreeNode.keys.add(i, key);
         System.out.println("Inserted key: " + key);
         System.out.println("Keys in BPlusTreeNode: " + BPlusTreeNode.keys);
     }
-    private BPlusTreeNode splitLeafBPlusTreeNode(BPlusTreeNode leaf, int key) {
-        ArrayList<Integer> tempKeys = new ArrayList<>(leaf.keys);
+
+    private BPlusTreeNode<T> splitLeafBPlusTreeNode(BPlusTreeNode<T> leaf, T key) {
+        ArrayList<T> tempKeys = new ArrayList<>(leaf.keys);
         int i = 0;
-        while (i < tempKeys.size() && key > tempKeys.get(i)) {
+        while (i < tempKeys.size() && key.compareTo(tempKeys.get(i)) > 0) {
             i++;
         }
         tempKeys.add(i, key);
 
         int mid = (order - 1) / 2;
-        BPlusTreeNode newLeaf = new BPlusTreeNode(order, true);
+        BPlusTreeNode<T> newLeaf = new BPlusTreeNode<>(order, true);
 
         leaf.keys.clear();
         leaf.keys.addAll(tempKeys.subList(0, mid));
@@ -72,7 +74,7 @@ public class BPlusTree {
         if (leaf.parent != null) {
             insertInParent(leaf, newLeaf.keys.get(0), newLeaf);
         } else {
-            BPlusTreeNode newRoot = new BPlusTreeNode(order, false);
+            BPlusTreeNode<T> newRoot = new BPlusTreeNode<>(order, false);
             newRoot.keys.add(newLeaf.keys.get(0));
             newRoot.children.add(leaf);
             newRoot.children.add(newLeaf);
@@ -84,17 +86,16 @@ public class BPlusTree {
         return newLeaf;
     }
 
-
-    private void insertInParent(BPlusTreeNode oldBPlusTreeNode, int key, BPlusTreeNode newBPlusTreeNode) {
-        BPlusTreeNode parent = oldBPlusTreeNode.parent;
+    private void insertInParent(BPlusTreeNode<T> oldBPlusTreeNode, T key, BPlusTreeNode<T> newBPlusTreeNode) {
+        BPlusTreeNode<T> parent = oldBPlusTreeNode.parent;
         if (parent == null) {
-            parent = new BPlusTreeNode(order, false);
+            parent = new BPlusTreeNode<>(order, false);
             root = parent;
             oldBPlusTreeNode.parent = parent;
             parent.children.add(oldBPlusTreeNode);
         }
         int index = 0;
-        while (index < parent.keys.size() && key > parent.keys.get(index)) {
+        while (index < parent.keys.size() && key.compareTo(parent.keys.get(index)) > 0) {
             index++;
         }
 
@@ -102,25 +103,25 @@ public class BPlusTree {
         parent.children.add(index + 1, newBPlusTreeNode);
         newBPlusTreeNode.parent = parent;
         if (parent.keys.size() >= order) {
-            BPlusTreeNode newParent = splitInternalBPlusTreeNode(parent);
+            BPlusTreeNode<T> newParent = splitInternalBPlusTreeNode(parent);
         }
     }
 
-    private BPlusTreeNode splitInternalBPlusTreeNode(BPlusTreeNode internal) {
+    private BPlusTreeNode<T> splitInternalBPlusTreeNode(BPlusTreeNode<T> internal) {
         int mid = internal.keys.size() / 2;
-        int keyToMoveUp = internal.keys.get(mid);
-        BPlusTreeNode newInternal = new BPlusTreeNode(order, false);
+        T keyToMoveUp = internal.keys.get(mid);
+        BPlusTreeNode<T> newInternal = new BPlusTreeNode<>(order, false);
         newInternal.children.addAll(new ArrayList<>(internal.children.subList(mid + 1, internal.children.size())));
         newInternal.keys.addAll(new ArrayList<>(internal.keys.subList(mid + 1, internal.keys.size())));
 
-        for (BPlusTreeNode child : newInternal.children) {
+        for (BPlusTreeNode<T> child : newInternal.children) {
             child.parent = newInternal;
         }
         internal.keys.subList(mid, internal.keys.size()).clear();
         internal.children.subList(mid + 1, internal.children.size()).clear();
 
         if (internal == root) {
-            BPlusTreeNode newRoot = new BPlusTreeNode(order, false);
+            BPlusTreeNode<T> newRoot = new BPlusTreeNode<>(order, false);
             newRoot.keys.add(keyToMoveUp);
             newRoot.children.add(internal);
             newRoot.children.add(newInternal);
@@ -134,7 +135,7 @@ public class BPlusTree {
         return newInternal;
     }
 
-    public BPlusTreeNode getRoot() {
+    public BPlusTreeNode<T> getRoot() {
         return this.root;
     }
 
@@ -142,7 +143,7 @@ public class BPlusTree {
         printTree(root, "", true);
     }
 
-    private void printTree(BPlusTreeNode BPlusTreeNode, String indent, boolean last) {
+    private void printTree(BPlusTreeNode<T> BPlusTreeNode, String indent, boolean last) {
         if (BPlusTreeNode == null) return;
 
         System.out.print(indent);
@@ -168,5 +169,3 @@ public class BPlusTree {
         }
     }
 }
-
-

@@ -27,10 +27,11 @@ public class EBPartitionedHashTable implements EBPartitionedHashIndex{
 
 
     @Override
-    public void addIndex(EBIndex index) {
+    public boolean addIndex(EBIndex index) {
         if (isValidIndex(index)) {
             this.directory.addIndex(index);
         }
+        return false;
     }
 
     @Override

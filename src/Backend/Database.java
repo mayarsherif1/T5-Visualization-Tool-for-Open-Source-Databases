@@ -117,4 +117,33 @@ public class Database {
     public boolean containsTable(String tableName) {
         return tables.containsKey(tableName);
     }
+
+
+    public List<Map<String, String>> retrieveDataFromTable(String tableName) throws TableNotFoundException {
+        Table table = tables.get(tableName);
+        if (table != null) {
+            return table.getRows();
+        } else {
+            throw new TableNotFoundException(tableName);
+        }
+    }
+    public List<String> getDataFromTable(String tableName, String columnName) {
+        List<String> data = new ArrayList<>();
+        try {
+            Table table = getTable(tableName);
+            List<Map<String, String>> rows = table.getRows();
+            for (Map<String, String> row : rows) {
+                String value = row.get(columnName);
+                data.add(value);
+            }
+        } catch (TableNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+
 }
+
+

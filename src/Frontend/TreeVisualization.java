@@ -129,11 +129,12 @@ public class TreeVisualization extends JPanel {
                 executeSQL(sql);
                 if(sql.toLowerCase().startsWith("create table")){
                     CreateTableTab(sql);
-                }
-                else if(sql.trim().toLowerCase().startsWith("insert into")){
+                } else if(sql.trim().toLowerCase().startsWith("insert into")){
                     insertIntoTable(sql);
-                }
-                else {
+                } else if (sql.toLowerCase().startsWith("create index")) {
+                    System.out.println("create index sql panel");
+                    createIndexFromTable(sql);
+                } else {
                     ParseTree parseTree = processSQL(sql);
                     //todo setParseTree()
                     treePanel.repaint();
@@ -148,8 +149,61 @@ public class TreeVisualization extends JPanel {
         refreshTablesPanel();
         tablesPanel.revalidate();
         tablesPanel.repaint();
-
     }
+
+    private void createIndexFromTable(String sql) {
+        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)_tree \\((\\w+)\\);", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(sql);
+        if (matcher.find()) {
+            String indexName = matcher.group(1).trim();
+            String tableName = matcher.group(2).trim();
+            String  treeType = matcher.group(3).trim();
+            String columnName = matcher.group(4).trim();
+
+            switch (treeType.toLowerCase()) {
+                case "b":
+                    System.out.println("createBPlusTree");
+                    createBPlusTree(tableName, columnName);
+                    break;
+                case "kd":
+                    // Implement creation of KD tree
+                    break;
+                case "quad":
+                    // Implement creation of Quad tree
+                    break;
+                default:
+                    // Handle unsupported tree type
+                    break;
+            }
+        } else {
+            // Handle invalid SQL syntax for index creation
+        }
+    }
+
+    private void createBPlusTree(String tableName, String columnName) {
+        List<String> data = database.getDataFromTable(tableName, columnName);
+        System.out.println("createBPlusTree data: " + data);
+        visualizeBPlusTree(data);
+        System.out.println("createBPlusTree after visualizeBPlusTree method");
+    }
+    private void visualizeBPlusTree(List<String> data) {
+        SwingUtilities.invokeLater(() -> {
+            BPlusTreeGUI<String> bPlusTreeGUI = new BPlusTreeGUI<>();
+            for (String value : data) {
+                bPlusTreeGUI.getBPlusTree().insert(value);
+                System.out.println("value: " + value);
+            }
+            System.out.println("before refreshVis");
+            bPlusTreeGUI.refreshVis();
+            System.out.println("after refreshVis");
+
+            treePanel.setGraphComponent(bPlusTreeGUI.getGraphComponent());
+            System.out.println("after setGraphComponent");
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
+
 
     private void executeSQL(String sql) {
         if(sql.trim().isEmpty()){
@@ -162,66 +216,6 @@ public class TreeVisualization extends JPanel {
 
     }
 
-    private void getInsertInto(String sql) throws TableNotFoundException {
-        Pattern insertIntoPattern = Pattern.compile("INSERT INTO (\\w+) \\((.*)\\) VALUES \\((.*)\\)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = insertIntoPattern.matcher(sql);
-        if (matcher.find()) {
-            String tableName = matcher.group(1);
-            String columnNamesPart = matcher.group(2);
-            String valuesPart = matcher.group(3);
-            List<String> columnNames = Arrays.asList(columnNamesPart.split(","));
-            List<String> values = Arrays.asList(valuesPart.split(","));
-            columnNames = columnNames.stream().map(String::trim).collect(Collectors.toList());
-            values = values.stream().map(String::trim).collect(Collectors.toList());
-
-            try {
-                database.insertIntoTable(tableName, columnNames, values);
-                addRowToTable(tableName, values);
-                updateTableVis(tableName, getPages(), getRows());
-            } catch (TableNotFoundException e) {
-                throw new TableNotFoundException(e.getMessage());
-            }
-        }
-    }
-
-    private void setInsertInto(String sql) {
-        Pattern pattern = Pattern.compile("INSERT INTO (\\w+) \\((.*)\\) VALUES \\((.*)\\)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(sql);
-        if (matcher.find()) {
-            String tableName = matcher.group(1).trim();
-            String[] columnNames = matcher.group(2).trim().split("\\s*,\\s*");
-            String[] values = matcher.group(3).trim().split("\\s*,\\s*(?=(?:[^']*'[^']*')*[^']*$)");
-
-            System.out.println("/n Table Name: " + tableName);
-            System.out.println("Column Names: " + Arrays.toString(columnNames));
-            System.out.println("Values: " + Arrays.toString(values));
-
-            try {
-
-                database.insertIntoTable(tableName, Arrays.asList(columnNames), Arrays.asList(values));
-            } catch (TableNotFoundException e) {
-                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            //addRowToTable(tableName, values);
-            updatePageAfterInsert(tableName);
-        } else {
-            JOptionPane.showMessageDialog(this, "The SQL statement is not in the correct format for INSERT INTO.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private String[] getRowData(ParseTree tree) {
-        String sql = tree.getText();
-        Pattern pattern = Pattern.compile("INSERT INTO \\w+ VALUES \\((.*)\\)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(sql);
-        if(matcher.find()){
-            String values = matcher.group(1);
-            return values.split(",");
-
-        }
-        else {
-            throw new IllegalArgumentException("Row data not found in INSERT INTO statement");
-        }
-    }
 
     public void updateVisual() {
         treePanel.removeAll();
@@ -275,20 +269,6 @@ public class TreeVisualization extends JPanel {
         return rootNode;
     }
 
-//    private void refreshTablesPanel() {
-//        tablesPanel.removeAll();
-//        for(Table table: database.getAllTables()){
-//            JPanel tablePanel = new JPanel();
-//            tablePanel.setBorder(BorderFactory.createTitledBorder(table.getName().toLowerCase()));
-//            for(Column column : table.getColumns()){
-//                JLabel columnLabel = new JLabel(column.getName()+" ("+ column.getType()+ ")");
-//                tablePanel.add(columnLabel);
-//            }
-//            tablesPanel.add(tablePanel);
-//        }
-//        tablesPanel.revalidate();
-//        tablesPanel.repaint();
-//    }
 
     private void setCreateTable(ParseTree tree) {
         String tableName = getTableName(tree);
@@ -395,8 +375,11 @@ public class TreeVisualization extends JPanel {
                 Matcher matcher = pattern.matcher(sql);
                 if (matcher.find()) {
                     String tableName = matcher.group(1).trim();
+                    System.out.println("Table name: " + tableName);
                     String columnsPart = matcher.group(2).trim();
+                    System.out.println("Columns part: " + columnsPart);
                     List<Column> columns = parseColumns(columnsPart);
+                    System.out.println("Columns: " + columns);
                     database.createTable(tableName, columns);
                     updateTableVis(tableName, getPages(), getRows());
                 } else {
@@ -505,41 +488,6 @@ public class TreeVisualization extends JPanel {
     }
 
 
-    //    private void displayPages(String tableName, int pages, int rows) throws TableNotFoundException {
-//        tablesPanel.removeAll();
-//        tablesPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-//
-//        Table table = database.getTable(tableName);
-//
-//        List<Column> columns = table.getColumns();
-//
-//        for (int pageIndex = 0; pageIndex < pages; pageIndex++) {
-//            JPanel pagePanel = new JPanel(new BorderLayout());
-//            pagePanel.setBorder(BorderFactory.createTitledBorder("Page " + (pageIndex + 1)));
-//            JPanel headerPanel = new JPanel(new GridLayout(1, columns.size()));
-//            for (Column column : columns) {
-//                JLabel headerLabel = new JLabel(column.getName());
-//                headerLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//                headerPanel.add(headerLabel);
-//            }
-//            pagePanel.add(headerPanel, BorderLayout.NORTH);
-//            JPanel rowsPanel = new JPanel(new GridLayout(rows, 1));
-//            for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
-//                JPanel rowPanel = new JPanel(new GridLayout(1, columns.size()));
-//                for (Column column : columns) {
-//                    JLabel cellLabel = new JLabel();
-//                    cellLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//                    rowPanel.add(cellLabel);
-//                }
-//                rowsPanel.add(rowPanel);
-//            }
-//            pagePanel.add(rowsPanel, BorderLayout.CENTER);
-//            tablesPanel.add(pagePanel);
-//        }
-//
-//        tablesPanel.revalidate();
-//        tablesPanel.repaint();
-//    }
     public void refreshTablesPanel() {
         tablesPanel.removeAll();
         for (Table table : database.getAllTables()) {
@@ -577,8 +525,14 @@ public class TreeVisualization extends JPanel {
 
             List<String> finalColumns = columns;
             List<String> finalValues = values;
+            System.out.println("Columns: " + finalColumns);
+            System.out.println("Values: " + finalValues);
+
             SwingUtilities.invokeLater(() -> {
                 try {
+                    System.out.println("Inserting into table: " + tableName);
+                    System.out.println("Inserting columns: " + finalColumns);
+                    System.out.println("Inserting values: " + finalValues);
                     database.insertIntoTable(tableName, finalColumns, finalValues);
                     JTable table = findTableInUI(tableName);
                     if (table != null) {
@@ -636,20 +590,6 @@ public class TreeVisualization extends JPanel {
         return null;
     }
 
-//    private JTable findTableInUI(String tableName) {
-//        for (Component comp : tablesPanel.getComponents()) {
-//            if (comp instanceof JScrollPane) {
-//                JScrollPane scrollPane = (JScrollPane) comp;
-//                if (scrollPane.getBorder() != null && scrollPane.getBorder() instanceof TitledBorder) {
-//                    TitledBorder border = (TitledBorder) scrollPane.getBorder();
-//                    if (border.getTitle().equals(tableName)) {
-//                        return (JTable) scrollPane.getViewport().getView();
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
 
     private void updatePageAfterInsert(String tableName) {
         int rows = rowsCountPerTable.getOrDefault(tableName, 0) + 1;
@@ -666,8 +606,6 @@ public class TreeVisualization extends JPanel {
 
     public void addRowToTable(String tableName, List<String> values) {
         SwingUtilities.invokeLater(() -> {
-
-
             JScrollPane scrollPane = (JScrollPane) tables.get(tableName);
             if (scrollPane != null) {
 
@@ -693,51 +631,6 @@ public class TreeVisualization extends JPanel {
                 JOptionPane.showMessageDialog(null, "Table not found in UI: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-    }
-
-
-//    public void addRowToTable(String tableName, List<String> values) {
-//        SwingUtilities.invokeLater(() -> {
-//            JComponent component = tables.get(tableName.toLowerCase());
-//            if (component instanceof JScrollPane) {
-//                JScrollPane scrollPane = (JScrollPane) component;
-//                JTable table = (JTable) scrollPane.getViewport().getView();
-//                table.setName(tableName);
-//                DefaultTableModel model = (DefaultTableModel) table.getModel();
-//                Object[] rowData = values.toArray(new Object[0]);
-//                if (model.getRowCount() < getRowsPerPage(tableName)) {
-//                    model.addRow(rowData);
-//                } else {
-//                    try {
-//                        createNewPageForTable(tableName, values);
-//                    } catch (TableNotFoundException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//                table.revalidate();
-//                table.repaint();
-//            } else {
-//                System.err.println("Table not found in UI: " + tableName);
-//            }
-//        });
-//    }
-
-
-    private void createNewPageForTable(String tableName, List<String> values) throws TableNotFoundException {
-        DefaultTableModel model = new DefaultTableModel();
-        List<Column> columns = database.getTable(tableName).getColumns();
-        for (Column col : columns) {
-            model.addColumn(col.getName());
-        }
-        JTable newTable = new JTable(model);
-        newTable.setName(tableName);
-        model.addRow(values.toArray(new Object[0]));
-        JScrollPane newScrollPane = new JScrollPane(newTable);
-        newScrollPane.setBorder(BorderFactory.createTitledBorder("Page " + (getCurrentPageIndex(tableName) + 1)));
-        tablesPanel.add(newScrollPane);
-        currentPages.put(tableName, getCurrentPageIndex(tableName) + 1);
-        tablesPanel.revalidate();
-        tablesPanel.repaint();
     }
 
 
@@ -768,10 +661,6 @@ public class TreeVisualization extends JPanel {
     public int getRowsPerPage(String tableName) {
         return rowsPerPage.getOrDefault(tableName, 10);
     }
-
-    //Tree panel
-
-
 
 
     public static void main(String [] args){

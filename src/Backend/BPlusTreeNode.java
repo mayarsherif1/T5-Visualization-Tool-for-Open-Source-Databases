@@ -2,12 +2,12 @@ package Backend;
 
 import java.util.ArrayList;
 
-public class BPlusTreeNode {
+public class BPlusTreeNode<T extends Comparable<T>> {
     boolean isLeaf;
-    ArrayList<Integer> keys;
-    BPlusTreeNode parent;
-    BPlusTreeNode next; // For leaf nodes
-    ArrayList<BPlusTreeNode> children; // For internal nodes
+    ArrayList<T> keys;
+    BPlusTreeNode<T> parent;
+    BPlusTreeNode<T> next;
+    ArrayList<BPlusTreeNode<T>> children;
     int order;
 
     public BPlusTreeNode(int order, boolean isLeaf) {
@@ -15,30 +15,27 @@ public class BPlusTreeNode {
         this.isLeaf = isLeaf;
         keys = new ArrayList<>();
         children = new ArrayList<>();
-
     }
 
     public boolean isLeaf() {
         return isLeaf;
     }
 
-    public ArrayList<BPlusTreeNode> getChildren() {
+    public ArrayList<BPlusTreeNode<T>> getChildren() {
         return this.children;
     }
 
-
-    public ArrayList<Integer> getKeys() {
+    public ArrayList<T> getKeys() {
         return keys;
     }
 
-    public void setChildren(ArrayList<BPlusTreeNode> children) {
+    public void setChildren(ArrayList<BPlusTreeNode<T>> children) {
         this.children = children;
     }
 
-    public void setKeys(ArrayList<Integer> keys) {
+    public void setKeys(ArrayList<T> keys) {
         this.keys = keys;
     }
-
 
     public void printNode() {
         System.out.print("[");
@@ -50,5 +47,4 @@ public class BPlusTreeNode {
         }
         System.out.print("]");
     }
-
 }

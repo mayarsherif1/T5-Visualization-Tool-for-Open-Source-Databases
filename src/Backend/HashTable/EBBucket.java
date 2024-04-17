@@ -1,6 +1,7 @@
 package Backend.HashTable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class EBBucket implements EBPartitionedHashIndex{
 
@@ -46,16 +47,22 @@ public class EBBucket implements EBPartitionedHashIndex{
 
 
     @Override
-    public void addIndex(EBIndex index) {
+    public boolean addIndex(EBIndex index) {
+        if(isFull()){
+            return false;
+        }
         this.indexes[freeSlot++] = index;
+        return true;
     }
 
     @Override
     public void updateIndex(EBIndex oldIndex, EBIndex newIndex) {
+        int hashCode = oldIndex.hashCode();
         for (int i = 0; i < this.freeSlot; ++i) {
             EBIndex ebIndex = this.indexes[i];
-            if (ebIndex.equals(oldIndex) && !ebIndex.isDeleted()) {
+            if (ebIndex.hashCode() == hashCode && ebIndex.equals(oldIndex) && !ebIndex.isDeleted()) {
                 ebIndex.setValues(newIndex.getValues());
+                return;
             }
         }
     }
@@ -63,22 +70,39 @@ public class EBBucket implements EBPartitionedHashIndex{
     @Override
     public ArrayList<EBIndex> getIndex(EBIndex index) {
         ArrayList<EBIndex> indexList = new ArrayList<EBIndex>();
+        int hashCode = index.hashCode();
         for (int i = 0; i < this.freeSlot; ++i) {
             EBIndex ebIndex = this.indexes[i];
-            if (ebIndex.equals(index) && !ebIndex.isDeleted()) {
+            if (ebIndex.hashCode() == hashCode && ebIndex.equals(index) && !ebIndex.isDeleted()) {
                 indexList.add(ebIndex);
             }
         }
         return indexList;
     }
+    public ArrayList<EBIndex> getAllIndexes() {
+        return new ArrayList<>(Arrays.asList(indexes));
+    }
 
     @Override
     public void deleteIndex(EBIndex index) {
+        int hashCode = index.hashCode();
         for (int i = 0; i < this.freeSlot; ++i) {
             EBIndex ebIndex = this.indexes[i];
-            if (ebIndex.equals(index) && !ebIndex.isDeleted()) {
+            if (ebIndex.hashCode()== hashCode && ebIndex.equals(index) && !ebIndex.isDeleted()) {
                 ebIndex.setDeleted(true);
+                return;
             }
         }
+    }
+
+    public boolean contains(EBIndex oldIndex) {
+        int hashCode = oldIndex.hashCode();
+        for (int i = 0; i < this.freeSlot; ++i) {
+            EBIndex ebIndex = this.indexes[i];
+            if (ebIndex.hashCode() == hashCode && ebIndex.equals(oldIndex) && !ebIndex.isDeleted()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

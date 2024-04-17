@@ -1,6 +1,7 @@
 package Frontend;
 
 import Backend.Node;
+import com.yworks.yfiles.view.GraphComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,25 +9,48 @@ import java.util.List;
 
 
 public class TreePanel extends JPanel {
+    private GraphComponent graphComponent;
+
     private Node root;
     double scaleFactor = 1.0;
 
-    public TreePanel(Node root){
-        this.root=root;
-
+//    public TreePanel(Node root){
+//        this.root=root;
+//
+//    }
+    public TreePanel(GraphComponent graphComponent) {
+        this.graphComponent = graphComponent;
     }
-
-
     @Override
-    protected void paintComponent(Graphics g){
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        g2.scale(scaleFactor,scaleFactor);
-        if(root!=null){
-            drawTree(g2,root,(int)(getWidth()/2/scaleFactor),30,(int)(getWidth()/4/scaleFactor));
+        if (graphComponent != null) {
+            graphComponent.paint(g2);
         }
-
     }
+
+    public void setGraphComponent(GraphComponent newGraphComponent) {
+        if (this.graphComponent != null) {
+            this.remove(this.graphComponent);
+        }
+        this.graphComponent = newGraphComponent;
+        this.add(newGraphComponent);
+        this.revalidate();
+        this.repaint();
+    }
+
+
+//    @Override
+//    protected void paintComponent(Graphics g){
+//        super.paintComponent(g);
+//        Graphics2D g2 = (Graphics2D) g;
+//        g2.scale(scaleFactor,scaleFactor);
+//        if(root!=null){
+//            drawTree(g2,root,(int)(getWidth()/2/scaleFactor),30,(int)(getWidth()/4/scaleFactor));
+//        }
+//
+//    }
     private void drawTree(Graphics g, Node node, int x, int y, int offset) {
         int width =30;
         int height =30;

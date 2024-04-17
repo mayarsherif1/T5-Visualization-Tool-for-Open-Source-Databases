@@ -7,13 +7,23 @@ public class EBBucketList implements EBPartitionedHashIndex{
     private final ArrayList<EBBucket> buckets;
     private EBBucket currentBucket;
     private final int bucketCapacity;
+    private int localDepth;
 
     public EBBucketList(int bucketCapacity) {
         this.bucketCapacity = bucketCapacity;
         this.buckets = new ArrayList<EBBucket>();
-        EBBucket bucket = new EBBucket(this.bucketCapacity);
-        this.currentBucket = bucket;
-        buckets.add(bucket);
+        this.currentBucket = new EBBucket(this.bucketCapacity);
+        this.localDepth=1;
+        this.buckets.add(this.currentBucket);
+    }
+
+
+    public int getLocalDepth() {
+        return localDepth;
+    }
+
+    public void setLocalDepth(int localDepth) {
+        this.localDepth = localDepth;
     }
 
     public int buckets() {
@@ -21,19 +31,25 @@ public class EBBucketList implements EBPartitionedHashIndex{
     }
 
     @Override
-    public void addIndex(EBIndex index) {
-        this.currentBucket.addIndex(index);
-        if (this.currentBucket.isFull()) {
-            EBBucket bucket = new EBBucket(this.bucketCapacity);
-            this.currentBucket = bucket;
-            buckets.add(bucket);
+    public boolean addIndex(EBIndex index) {
+        if (isFull()){
+            return false;
         }
+        if (this.currentBucket.isFull()) {
+            this.currentBucket = new EBBucket(this.bucketCapacity);
+            this.buckets.add(this.currentBucket);
+            System.out.println("New bucket created due to overflow.");
+        }
+        return this.currentBucket.addIndex(index);
     }
 
     @Override
     public void updateIndex(EBIndex oldIndex, EBIndex newIndex) {
         for (EBBucket ebBucket : buckets) {
-            ebBucket.updateIndex(oldIndex, newIndex);
+            if (ebBucket.contains(oldIndex)) {
+                ebBucket.updateIndex(oldIndex, newIndex);
+                return;
+            }
         }
     }
 
@@ -46,10 +62,30 @@ public class EBBucketList implements EBPartitionedHashIndex{
         return indexList;
     }
 
+    public ArrayList<EBIndex> getAllIndexes() {
+        ArrayList<EBIndex> indexList = new ArrayList<EBIndex>();
+        for (EBBucket ebBucket : buckets) {
+            indexList.addAll(ebBucket.getAllIndexes());
+        }
+        return indexList;
+
+    }
+
     @Override
     public void deleteIndex(EBIndex index) {
         for (EBBucket ebBucket : buckets) {
-            ebBucket.deleteIndex(index);
+            if (ebBucket.contains(index)) {
+                ebBucket.deleteIndex(index);
+                return;
+            }
         }
     }
+
+    public boolean isEmpty() {
+        return buckets.stream().allMatch(EBBucket::isEmpty);
+    }
+    public boolean isFull() {
+        return buckets.stream().allMatch(EBBucket::isFull);
+    }
+
 }
