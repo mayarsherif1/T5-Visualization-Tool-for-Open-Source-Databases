@@ -20,17 +20,18 @@ import com.yworks.yfiles.view.input.GraphViewerInputMode;
 import javax.swing.*;
 import java.awt.*;
 
-public class QuadTreeVisualization extends JPanel {
+public class QuadTreeGUI extends JPanel {
     private QuadTree quadTree;
     private GraphComponent graphComponent;
     private SpatialPanel spatialPanel;
 
-    public QuadTreeVisualization(QuadTree quadTree) {
+    public QuadTreeGUI(QuadTree quadTree) {
         this.quadTree = quadTree;
         this.graphComponent = new GraphComponent();
         this.spatialPanel = new SpatialPanel(quadTree);
         setLayout(new BorderLayout());
         initUI();
+
     }
 
     private void initUI() {
@@ -87,7 +88,7 @@ public class QuadTreeVisualization extends JPanel {
         }
     }
 
-    private void applyHierarchicLayout() {
+    public void applyHierarchicLayout() {
         HierarchicLayout layout = new HierarchicLayout();
         layout.setMinimumLayerDistance(50);
         layout.setNodeToNodeDistance(25);
@@ -129,6 +130,10 @@ public class QuadTreeVisualization extends JPanel {
         }
     }
 
+    public GraphComponent getGraphComponent() {
+        return graphComponent;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(()-> {
             JFrame frame = new JFrame("QuadTree Visualization");
@@ -144,7 +149,7 @@ public class QuadTreeVisualization extends JPanel {
             quadTree.insert(new Point(190, 340, "X", "Y"));
             quadTree.insert(new Point(350, 350, "X", "Y"));
 
-            QuadTreeVisualization visualizationPanel = new QuadTreeVisualization(quadTree);
+            QuadTreeGUI visualizationPanel = new QuadTreeGUI(quadTree);
             frame.add(visualizationPanel);
             visualizationPanel.applyHierarchicLayout();
 

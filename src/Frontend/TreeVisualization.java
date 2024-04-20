@@ -152,32 +152,112 @@ public class TreeVisualization extends JPanel {
     }
 
     private void createIndexFromTable(String sql) {
-        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)_tree \\((\\w+)\\);", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)_tree \\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(sql);
         if (matcher.find()) {
             String indexName = matcher.group(1).trim();
             String tableName = matcher.group(2).trim();
             String  treeType = matcher.group(3).trim();
-            String columnName = matcher.group(4).trim();
+            String firstColumnName = matcher.group(4).trim();
+            String secondColumnName = (matcher.groupCount() > 4) ? matcher.group(5).trim() : null;
+
 
             switch (treeType.toLowerCase()) {
                 case "b":
                     System.out.println("createBPlusTree");
-                    createBPlusTree(tableName, columnName);
+                    createBPlusTree(tableName, firstColumnName);
                     break;
                 case "kd":
-                    // Implement creation of KD tree
+                    System.out.println("Creating KD Tree Index");
+                    if (secondColumnName == null) {
+                        System.out.println("Error: KD tree requires two columns.");
+                    } else {
+                        createKDTree(tableName, firstColumnName, secondColumnName);
+                    }
                     break;
                 case "quad":
-                    // Implement creation of Quad tree
+                    System.out.println("Creating Quad Tree Index");
+                    createQuadTree(tableName, firstColumnName, secondColumnName);
                     break;
                 default:
-                    // Handle unsupported tree type
+                    System.out.println("Unsupported tree type specified.");
                     break;
             }
         } else {
-            // Handle invalid SQL syntax for index creation
+            System.out.println("Invalid SQL syntax for creating index.");
         }
+    }
+
+    private void createQuadTree(String tableName, String columnName, String secondColumnName) {
+        try {
+            List<String> xData = database.getDataFromTable(tableName, columnName);
+            List<String> yData = database.getDataFromTable(tableName, secondColumnName);
+            System.out.println("xData: " + xData);
+            System.out.println("yData: " + yData);
+
+            List<Backend.Point> points = new ArrayList<>();
+            for (int i = 0; i < xData.size(); i++) {
+                int x = Integer.parseInt(xData.get(i).replace("'", "").trim());
+                int y = Integer.parseInt(yData.get(i).replace("'", "").trim());
+                System.out.println("x: " + x + ", y: " + y);
+                points.add(new Backend.Point(x, y));
+            }
+
+            QuadTree quadTree = new QuadTree(new Rectangle(0, 0, 400, 400), 4); // Assuming boundary and max capacity
+            for (Backend.Point point : points) {
+                quadTree.insert(point);
+            }
+
+            visualizeQuadTree(quadTree);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Error parsing coordinate data.", "Data Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to create and visualize QuadTree.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void visualizeQuadTree(QuadTree quadTree) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            QuadTreeGUI quadTreeGUI = new QuadTreeGUI(quadTree);
+            quadTreeGUI.applyHierarchicLayout();
+            treePanel.add(quadTreeGUI,BorderLayout.CENTER);
+            //treePanel.setGraphComponent(quadTreeGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
+
+
+
+    private void createKDTree(String tableName, String firstColumnName, String secondColumnName) {
+        List<String> xData = database.getDataFromTable(tableName, firstColumnName);
+        List<String> yData = database.getDataFromTable(tableName, secondColumnName);
+        System.out.println("xData: " + xData);
+        System.out.println("yData: " + yData);
+
+        List<Backend.Point> points = new ArrayList<>();
+        //KDTree kdTree = new KDTree();
+
+        for (int i = 0; i < xData.size(); i++) {
+            int x = Integer.parseInt(xData.get(i).replace("'", "").trim());
+            int y = Integer.parseInt(yData.get(i).replace("'", "").trim());
+            Backend.Point newPoint = new Backend.Point(x, y, firstColumnName, secondColumnName);
+            points.add(newPoint);
+        }
+        KDTree kdTree = new KDTree(points);
+
+        visualizeKDTree(kdTree);
+    }
+
+    private void visualizeKDTree(KDTree kdTree) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            KDTreeGUI kdTreeGUI = new KDTreeGUI(kdTree);
+            treePanel.setGraphComponent(kdTreeGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
     }
 
     private void createBPlusTree(String tableName, String columnName) {
@@ -186,6 +266,7 @@ public class TreeVisualization extends JPanel {
         visualizeBPlusTree(data);
         System.out.println("createBPlusTree after visualizeBPlusTree method");
     }
+
     private void visualizeBPlusTree(List<String> data) {
         SwingUtilities.invokeLater(() -> {
             BPlusTreeGUI<String> bPlusTreeGUI = new BPlusTreeGUI<>();
@@ -247,14 +328,6 @@ public class TreeVisualization extends JPanel {
     }
 
 
-    public void addColumnToTable(String tableName, String columnName, String columnType) throws TableNotFoundException {
-        Table table = database.getTable(tableName);
-        if (table != null) {
-            Column newColumn = new Column(columnName, columnType);
-            table.addColumn(newColumn);
-        }
-    }
-
 
     private Node buildTreeFromDatabase() {
         Node rootNode = new Node("Database");
@@ -269,52 +342,6 @@ public class TreeVisualization extends JPanel {
         return rootNode;
     }
 
-
-    private void setCreateTable(ParseTree tree) {
-        String tableName = getTableName(tree);
-        List<Column> columnList = getColumns(tree);
-        Table table = new Table(tableName);
-        for(Column column : columnList){
-            table.addColumn(column);
-        }
-        database.addTable(table);
-
-    }
-
-    private List<Column> getColumns(ParseTree tree) {
-        List<Column> columns = new ArrayList<>();
-        String sql = tree.getText();
-        Pattern pattern = Pattern.compile("\\(([^)]+)\\)");
-        Matcher matcher = pattern.matcher(sql);
-
-        if (matcher.find()){
-            String allColumns = matcher.group(1);
-            String[] columnDef = allColumns.split(",(?![^()]*\\))");
-            for (String cd :columnDef ){
-                cd = cd.trim();
-                String [] parts= cd.split("\\s+");
-                if (parts.length>=2){
-                    String columnName = parts[0];
-                    String columnType = parts[1];
-                    columns.add(new Column(columnName,columnType));
-                }
-            }
-        }
-        return columns;
-    }
-
-    private String getTableName(ParseTree tree) {
-        String sql = tree.getText();
-        System.out.println("Processing SQL: " + sql);
-        Pattern pattern = Pattern.compile("CREATE\\s+TABLE\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(sql);
-        if(matcher.find()){
-            return matcher.group(1);
-        }
-        else {
-            throw new IllegalArgumentException("Table name not found in CREATE TABLE statement");
-        }
-    }
 
     class PageInfo {
         int pages;

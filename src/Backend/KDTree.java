@@ -9,6 +9,28 @@ public class KDTree extends GenericTree {
         this.root=null;
     }
 
+    public KDTree(List<Point> points) {
+        this.root = buildTree(points, 0);
+    }
+
+    private KDNode buildTree(List<Point> points, int depth) {
+        if (points.isEmpty()) {
+            return null;
+        }
+        int dimension = depth % 2;
+        points.sort((p1, p2) -> (dimension == 0) ? Integer.compare(p1.getX(), p2.getX()) : Integer.compare(p1.getY(), p2.getY()));
+        int medianIndex = points.size() / 2;
+        Point medianPoint = points.get(medianIndex);
+        KDNode node = new KDNode(medianPoint);
+
+
+        List<Point> leftSublist = points.subList(0, medianIndex);
+        List<Point> rightSublist = points.subList(medianIndex + 1, points.size());
+        node.setLeft(buildTree(leftSublist, depth + 1));
+        node.setRight(buildTree(rightSublist, depth + 1));
+        return node;
+    }
+
     @Override
     public void insert(Comparable x) {
         if(!(x instanceof Point)){
@@ -21,19 +43,24 @@ public class KDTree extends GenericTree {
     }
 
     private KDNode insertHelper(KDNode node, Point point, int depth) {
-        if(node== null){
+        if (node == null) {
+            System.out.println("Inserting new node at depth " + depth + ": " + point);
             return new KDNode(point);
         }
 
-        int dimension = point.compareTo(node.getPoint(),depth);
-        if(dimension<0){
-            node.setLeft(insertHelper(node.getLeft(),point,depth+1));
-
-        }else {
-            node.setRight(insertHelper(node.getRight(),point,depth+1));
+        int cd = depth % 2;
+        int cmp = (cd == 0) ? Integer.compare(point.getX(), node.getPoint().getX())
+                : Integer.compare(point.getY(), node.getPoint().getY());
+        if (cmp < 0) {
+            System.out.println("Going left at depth " + depth + ", point: " + point);
+            node.setLeft(insertHelper(node.getLeft(), point, depth + 1));
+        } else {
+            System.out.println("Going:  right at depth " + depth + ", point: " + point);
+            node.setRight(insertHelper(node.getRight(), point, depth + 1));
         }
         return node;
     }
+
 
     @Override
     public void delete(Comparable x) {
@@ -41,6 +68,7 @@ public class KDTree extends GenericTree {
             throw new IllegalArgumentException("KDTree only supports Point Objects");
         }
         root = deleteHelper(root, (Point)x, 0);
+
 
     }
 

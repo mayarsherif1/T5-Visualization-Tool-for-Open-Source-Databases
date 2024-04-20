@@ -16,12 +16,11 @@ import com.yworks.yfiles.view.GraphComponent;
 import javax.swing.*;
 import java.awt.*;
 import java.time.Duration;
+import java.util.ArrayList;
 
 public class KDTreeGUI extends JFrame {
     private GraphComponent graphComponent;
     private KDTree kdTree;
-    private String labelX = "X";
-    private String labelY = "Y";
 
     public KDTreeGUI(KDTree kdTree) {
         this.kdTree = kdTree;
@@ -81,29 +80,56 @@ public class KDTreeGUI extends JFrame {
         visualizeKDNode(graph, kdNode.getRight(), yNode, depth+1);
     }
 
+    public GraphComponent getGraphComponent() {
+        return graphComponent;
+    }
+
     public static void main(String[] args) {
 
-        KDTree kdTree = new KDTree();
-        Point point1 = new Point(2, 3, "X", "Y");
-        Point point2 = new Point(5, 2, "X", "Y");
-        Point point3 = new Point(4, 4, "X", "Y");
-        Point point4 = new Point(1, 3, "X", "Y");
-        Point point5 = new Point(2, 8, "X", "Y");
-        Point point6 = new Point(6, 1, "X", "Y");
-        Point point7 = new Point(0, 2, "X", "Y");
-        Point point8 = new Point(0, 1, "X", "Y");
-        Point point9 = new Point(1,4, "X", "Y");
-        Point point10 = new Point(3,2, "X", "Y");
-        kdTree.insert(point1);
-        kdTree.insert(point2);
-        kdTree.insert(point3);
-        kdTree.insert(point4);
-        kdTree.insert(point5);
-        kdTree.insert(point6);
-        kdTree.insert(point7);
-        kdTree.insert(point8);
-        kdTree.insert(point9);
-        kdTree.insert(point10);
+        //KDTree kdTree = new KDTree();
+//        Point point1 = new Point(2, 3, "X", "Y");
+//        Point point2 = new Point(5, 2, "X", "Y");
+//        Point point3 = new Point(4, 4, "X", "Y");
+//        Point point4 = new Point(1, 3, "X", "Y");
+//        Point point5 = new Point(2, 8, "X", "Y");
+//        Point point6 = new Point(6, 1, "X", "Y");
+//        Point point7 = new Point(0, 2, "X", "Y");
+//        Point point8 = new Point(0, 1, "X", "Y");
+//        Point point9 = new Point(1,4, "X", "Y");
+//        Point point10 = new Point(3,2, "X", "Y");
+//        kdTree.insert(point1);
+//        kdTree.insert(point2);
+//        kdTree.insert(point3);
+//        kdTree.insert(point4);
+//        kdTree.insert(point5);
+//        kdTree.insert(point6);
+//        kdTree.insert(point7);
+//        kdTree.insert(point8);
+//        kdTree.insert(point9);
+//        kdTree.insert(point10);
+
+
+//        kdTree.insert(new Point(1, 22, "id", "age"));
+//        kdTree.insert(new Point(2, 12, "id", "age"));
+//        kdTree.insert(new Point(3, 32, "id", "age"));
+//        kdTree.insert(new Point(4, 25, "id", "age"));
+//        kdTree.insert(new Point(5, 15, "id", "age"));
+//        kdTree.insert(new Point(6, 18, "id", "age"));
+//        kdTree.insert(new Point(7, 28, "id", "age"));
+//
+
+
+        ArrayList<Point> points = new ArrayList<>();
+        points.add(new Point(1, 22, "x", "y"));
+        points.add(new Point(2, 12, "x", "y"));
+        points.add(new Point(3, 32, "x", "y"));
+        points.add(new Point(4, 25, "x", "y"));
+        points.add(new Point(5, 15, "x", "y"));
+        points.add(new Point(6, 18, "x", "y"));
+        points.add(new Point(7, 28, "x", "y"));
+
+        KDTree kdTree = new KDTree(points);
+
         kdTree.printKDTree(kdTree.getRoot(), 0);
 
         SwingUtilities.invokeLater(() -> {

@@ -20,6 +20,9 @@ public class KDNode extends Node {
 
     public void setLeft(KDNode left) {
         this.left = left;
+        if (left != null) {
+            left.setLevel(this.level + 1);
+        }
     }
 
     public KDNode getRight() {
@@ -28,6 +31,9 @@ public class KDNode extends Node {
 
     public void setRight(KDNode right) {
         this.right = right;
+        if (right != null) {
+            right.setLevel(this.level + 1);
+        }
     }
 
     public int getLevel() {
