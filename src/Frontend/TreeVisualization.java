@@ -1,6 +1,11 @@
 package Frontend;
 
 import Backend.*;
+import Backend.Database.Column;
+import Backend.Database.Database;
+import Backend.Database.Table;
+import Backend.KDTree.KDTree;
+import Backend.QuadTree.QuadTree;
 import antlr4.PostgreSQLLexer;
 import antlr4.PostgreSQLParser;
 import org.antlr.v4.runtime.*;

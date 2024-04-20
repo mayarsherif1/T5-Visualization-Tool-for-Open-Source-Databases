@@ -1,4 +1,6 @@
-package Backend;
+package Backend.BRIN;
+
+import Backend.BRIN.BrinBlock;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,6 @@
-package Backend;
+package Backend.QuadTree;
+
+import Backend.Point;
 
 import java.awt.*;
 
@@ -11,7 +13,7 @@ public class QuadTree {
         this.root = new QuadTreeNode(boundary, 1);
         this.maxDepth = maxDepth;
     }
-    public void insert(Point point) {
+    public void insert(Backend.Point point) {
         root.insert(point, maxDepth);
     }
     public QuadTreeNode getRoot() {

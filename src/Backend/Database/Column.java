@@ -1,4 +1,4 @@
-package Backend;
+package Backend.Database;
 
 public class Column {
     private String name;

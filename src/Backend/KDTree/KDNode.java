@@ -1,4 +1,7 @@
-package Backend;
+package Backend.KDTree;
+
+import Backend.Node;
+import Backend.Point;
 
 public class KDNode extends Node {
     private Point point;

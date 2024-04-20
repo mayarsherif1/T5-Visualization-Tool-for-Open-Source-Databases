@@ -1,7 +1,7 @@
 package Frontend;
 
-import Backend.BrinBlock;
-import Backend.BrinIndex;
+import Backend.BRIN.BrinBlock;
+import Backend.BRIN.BrinIndex;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;
 import com.yworks.yfiles.graph.styles.PolylineEdgeStyle;

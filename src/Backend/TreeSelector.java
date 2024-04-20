@@ -1,5 +1,7 @@
 package Backend;
 
+import Backend.KDTree.KDTree;
+
 public class TreeSelector {
     public static GenericTree createTree(String type){
         switch (type){

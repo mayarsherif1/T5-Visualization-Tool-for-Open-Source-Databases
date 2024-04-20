@@ -1,8 +1,8 @@
 package Frontend;
 
 import Backend.Point;
-import Backend.QuadTree;
-import Backend.QuadTreeNode;
+import Backend.QuadTree.QuadTree;
+import Backend.QuadTree.QuadTreeNode;
 import com.yworks.yfiles.geometry.InsetsD;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;

@@ -1,5 +1,7 @@
 package Backend;
 
+import Backend.Database.Database;
+import Backend.Database.Table;
 import Frontend.TreeVisualization;
 import antlr4.PostgreSQLParser;
 import antlr4.PostgreSQLParserBaseListener;

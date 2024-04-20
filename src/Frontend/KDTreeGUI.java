@@ -1,7 +1,7 @@
 package Frontend;
 
-import Backend.KDNode;
-import Backend.KDTree;
+import Backend.KDTree.KDNode;
+import Backend.KDTree.KDTree;
 import Backend.Point;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.geometry.SizeD;

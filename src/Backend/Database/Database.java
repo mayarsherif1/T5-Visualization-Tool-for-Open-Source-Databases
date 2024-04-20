@@ -1,4 +1,7 @@
-package Backend;
+package Backend.Database;
+
+import Backend.Index;
+import Backend.TableNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Database {
-    private Map<String,Table> tables;
-    private Map<String,Index> indexes;
+    private Map<String, Table> tables;
+    private Map<String, Index> indexes;
 
     public Database(){
         this.tables=new HashMap<>();
@@ -20,7 +23,7 @@ public class Database {
 
     }
 
-    public Table getTable(String tableName) throws TableNotFoundException{
+    public Table getTable(String tableName) throws TableNotFoundException {
         Table table = tables.get(tableName);
         if(table==null){
             throw new TableNotFoundException(tableName);

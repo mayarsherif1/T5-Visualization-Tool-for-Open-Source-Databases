@@ -1,4 +1,4 @@
-package Backend;
+package Backend.BRIN;
 
 import java.util.Objects;
 
@@ -6,6 +6,9 @@ public class BrinBlock {
     private int min;
     private int max;
     public BrinBlock(int min, int max) {
+        if (min > max) {
+            throw new IllegalArgumentException("Minimum value cannot be greater than maximum value.");
+        }
         this.min = min;
         this.max = max;
     }

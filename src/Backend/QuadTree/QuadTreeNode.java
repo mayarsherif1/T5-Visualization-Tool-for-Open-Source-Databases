@@ -1,4 +1,6 @@
-package Backend;
+package Backend.QuadTree;
+
+import Backend.Point;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -6,7 +8,7 @@ import java.util.List;
 
 public class QuadTreeNode {
     public Rectangle bounds;
-    public List<Point> points;
+    public List<Backend.Point> points;
     public QuadTreeNode[] children;
     public int depth;
     public boolean isLeaf;
@@ -20,7 +22,7 @@ public class QuadTreeNode {
         this.isLeaf=true;
     }
 
-    void insert(Point point, int maxDepth) {
+    void insert(Backend.Point point, int maxDepth) {
         if (isLeaf) {
             if (depth >= maxDepth) {
                 points.add(point);
@@ -29,9 +31,9 @@ public class QuadTreeNode {
                 if (points.size() >= 2) {
                     subdivide();
                     isLeaf = false;
-                    List<Point> newPoint = new ArrayList<>(points);
+                    List<Backend.Point> newPoint = new ArrayList<>(points);
                     points.clear();
-                    for (Point p : newPoint) {
+                    for (Backend.Point p : newPoint) {
                         insertIntoChild(p, maxDepth);
                     }
                     //points.clear();
@@ -69,7 +71,7 @@ public class QuadTreeNode {
 
 
 
-    private void insertIntoChild(Point point, int maxDepth) {
+    private void insertIntoChild(Backend.Point point, int maxDepth) {
         if (NE.bounds.contains(point.getX(), point.getY())) {
             NE.insert(point, maxDepth);
         } else if (NW.bounds.contains(point.getX(), point.getY())) {
@@ -93,7 +95,7 @@ public class QuadTreeNode {
         SW = new QuadTreeNode(new Rectangle(x, y + newHeight, newWidth, newHeight), depth + 1);
     }
 
-    public boolean delete(Point point, int maxDepth) {
+    public boolean delete(Backend.Point point, int maxDepth) {
         if (!bounds.contains(point.getX(),point.getY())) {
             return false;
         }

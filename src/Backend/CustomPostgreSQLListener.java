@@ -1,5 +1,6 @@
 package Backend;
 
+import Backend.Database.Column;
 import antlr4.PostgreSQLParser;
 import antlr4.PostgreSQLParserBaseListener;
 import java.util.ArrayList;

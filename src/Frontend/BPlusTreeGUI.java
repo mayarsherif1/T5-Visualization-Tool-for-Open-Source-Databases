@@ -1,7 +1,7 @@
 package Frontend;
 
-import Backend.BPlusTree;
-import Backend.BPlusTreeNode;
+import Backend.BPlus.BPlusTree;
+import Backend.BPlus.BPlusTreeNode;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;

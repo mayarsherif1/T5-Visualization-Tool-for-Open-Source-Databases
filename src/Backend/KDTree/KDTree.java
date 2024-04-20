@@ -1,4 +1,7 @@
-package Backend;
+package Backend.KDTree;
+
+import Backend.GenericTree;
+import Backend.Point;
 
 import java.util.ArrayList;
 import java.util.List;
