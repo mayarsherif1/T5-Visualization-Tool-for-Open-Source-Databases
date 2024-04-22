@@ -2,6 +2,8 @@ package Frontend;
 
 import Backend.BRIN.BrinBlock;
 import Backend.BRIN.BrinIndex;
+import Backend.BRIN.BrinLevel;
+import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;
 import com.yworks.yfiles.graph.styles.PolylineEdgeStyle;
@@ -13,7 +15,8 @@ import com.yworks.yfiles.view.Pen;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BrinGUI extends JFrame {
     private JFrame frame;
@@ -23,11 +26,10 @@ public class BrinGUI extends JFrame {
     private BrinIndex brinIndex;
     private GraphComponent graphComponent;
 
-
     public BrinGUI(BrinIndex brinIndex) {
         this.brinIndex = brinIndex;
         initializeComponents();
-        visualizeBrinBlocks(graphComponent.getGraph());
+        visualizeBrinBlocks();
     }
 
     private void initializeComponents() {
@@ -49,13 +51,12 @@ public class BrinGUI extends JFrame {
             try {
                 int value = Integer.parseInt(valueField.getText().trim());
                 brinIndex.insertValue(value);
-                visualizeBrinBlocks(graphComponent.getGraph());
+                visualizeBrinBlocks();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Please enter a valid integer.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
-
 
     private void applyLayout(IGraph graph) {
         PolylineEdgeStyle edgeStyle = new PolylineEdgeStyle();
@@ -63,102 +64,69 @@ public class BrinGUI extends JFrame {
         graph.getEdgeDefaults().setStyle(edgeStyle);
         HierarchicLayout layout = new HierarchicLayout();
         graph.applyLayout(layout);
-
     }
 
-    private void visualizeBrinBlocks(IGraph graph) {
-        brinIndex.getBlocks().sort(Comparator.comparingInt(BrinBlock::getMin));
+    private void visualizeBrinBlocks() {
+        IGraph graph = graphComponent.getGraph();
         graph.clear();
-        for (BrinBlock block : brinIndex.getBlocks()) {
-            INode blockNode = createBlockNode(graph, block);
-            INode rangeNode = createRangeNode(graph, block.getMin(), block.getMax());
 
-            graph.createEdge(blockNode, rangeNode);
+        int startX = 50;
+        int startY = 50;
+        int blockHeight = 50;
+        int levelGap = 200;
+        Map<BrinBlock, INode> previousLevelNodes = new HashMap<>();
+
+        for (int levelIndex = 0; levelIndex < brinIndex.getLevels().size(); levelIndex++) {
+            BrinLevel level = brinIndex.getLevels().get(levelIndex);
+            int x = startX + levelIndex * levelGap;
+            int y = startY;
+
+            for (BrinBlock block : level.getBlocks()) {
+                INode node = createNode(graph, block, x, y);
+                if (levelIndex > 0) {
+                    BrinBlock parentBlock = findParentBlock(block, brinIndex.getLevels().get(levelIndex - 1));
+                    INode parentNode = previousLevelNodes.get(parentBlock);
+                    if (parentNode != null) {
+                        graph.createEdge(parentNode, node);
+                    }
+                }
+                y += blockHeight;
+            }
+            previousLevelNodes.clear();
+            for (BrinBlock block : level.getBlocks()) {
+                previousLevelNodes.put(block, graph.getNodes().last());
+            }
         }
-
-        HierarchicLayout layout = new HierarchicLayout();
-        graph.applyLayout(layout);
+        applyLayout(graph);
+        graphComponent.fitGraphBounds();
         graphComponent.updateUI();
     }
 
-    private INode createBlockNode(IGraph graph, BrinBlock block) {
+    private INode createNode(IGraph graph, BrinBlock block, int x, int y) {
         ShapeNodeStyle nodeStyle = new ShapeNodeStyle();
         nodeStyle.setShape(ShapeNodeShape.RECTANGLE);
         nodeStyle.setPaint(Color.LIGHT_GRAY);
         nodeStyle.setPen(new Pen(Color.BLACK, 2));
-        INode node = graph.createNode();
-        graph.setStyle(node, nodeStyle);
-        graph.addLabel(node, block.toString());
-
+        RectD bounds = new RectD(x, y, 100, 30);
+        INode node = graph.createNode(bounds, nodeStyle, block);
+        graph.addLabel(node, String.format("[%d, %d]", block.getMin(), block.getMax()));
         return node;
     }
 
-    private INode createRangeNode(IGraph graph, int min, int max) {
-        ShapeNodeStyle nodeStyle = new ShapeNodeStyle();
-        nodeStyle.setShape(ShapeNodeShape.ELLIPSE);
-        nodeStyle.setPaint(Color.WHITE);
-        nodeStyle.setPen(new Pen(Color.BLACK, 1));
-        INode node = graph.createNode();
-        graph.setStyle(node, nodeStyle);
-        String label = (min == max) ? "Page " + min : String.format("Pages %d-%d", min, max);
-        graph.addLabel(node, label);
-
-        return node;
-    }
-
-
-
-
-//    private void visualizeBrinBlocks(IGraph graph) {
-//        double xOffset = 0;
-//        double yOffset = 0;
-//        double xGap = 10;
-//        double yGap = 50;
-//
-//        List<List<BrinBlock>> levels = brinIndex.getLevels();
-//        for (List<BrinBlock> level : levels) {
-//            xOffset = 0;
-//            for (BrinBlock block : level) {
-//                ShapeNodeStyle nodeStyle = new ShapeNodeStyle();
-//                nodeStyle.setShape(ShapeNodeShape.RECTANGLE);
-//                nodeStyle.setPaint(Color.WHITE);
-//                SizeD size = new SizeD(60, 30);
-//                INode node = graph.createNode(new RectD(xOffset, yOffset, size.width, size.height), nodeStyle);
-//                node.setTag(block);
-//                String label = String.format("[%d, %d]", block.getMin(), block.getMax());
-//                graph.addLabel(node, label);
-//                if (block.getParent() != null) {
-//                    BrinBlock parentBlock = block.getParent();
-//                    INode parentNode = findNodeByBlock(graph, parentBlock);
-//                    if (parentNode != null) {
-//                        graph.createEdge(parentNode, node);
-//                    }
-//                }
-//
-//                xOffset += size.width + xGap;
-//            }
-//            yOffset += yGap;
-//        }
-//    }
-
-    private INode findNodeByBlock(IGraph graph, BrinBlock block) {
-        for (INode node : graph.getNodes()) {
-            if (node.getTag() == block) {
-                return node;
+    private BrinBlock findParentBlock(BrinBlock childBlock, BrinLevel parentLevel) {
+        for (BrinBlock parentBlock : parentLevel.getBlocks()) {
+            if (childBlock.getMin() >= parentBlock.getMin() && childBlock.getMax() <= parentBlock.getMax()) {
+                return parentBlock;
             }
         }
         return null;
     }
 
-
     public static void main(String[] args) {
         BrinIndex brinIndex = new BrinIndex();
-
-
         SwingUtilities.invokeLater(() -> {
             BrinGUI frame = new BrinGUI(brinIndex);
             frame.setVisible(true);
         });
     }
-
 }

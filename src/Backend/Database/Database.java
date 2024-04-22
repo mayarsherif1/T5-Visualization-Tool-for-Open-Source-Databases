@@ -121,15 +121,6 @@ public class Database {
         return tables.containsKey(tableName);
     }
 
-
-    public List<Map<String, String>> retrieveDataFromTable(String tableName) throws TableNotFoundException {
-        Table table = tables.get(tableName);
-        if (table != null) {
-            return table.getRows();
-        } else {
-            throw new TableNotFoundException(tableName);
-        }
-    }
     public List<String> getDataFromTable(String tableName, String columnName) {
         List<String> data = new ArrayList<>();
         try {
@@ -145,6 +136,7 @@ public class Database {
 
         return data;
     }
+
 
 
 }

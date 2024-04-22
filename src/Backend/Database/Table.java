@@ -45,7 +45,6 @@ public class Table {
             boolean colFound = false;
             for (Column column: columns){
                 if (column.getName().equals(columnName)){
-                    //todo type checking
                     colFound=true;
                     newRow.put(columnName,value);
                     break;
@@ -112,4 +111,15 @@ public class Table {
     }
 
 
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        if (rowIndex >= rows.size()) {
+            throw new IndexOutOfBoundsException("Row index out of range: " + rowIndex);
+        }
+        if (columnIndex >= columns.size()) {
+            throw new IndexOutOfBoundsException("Column index out of range: " + columnIndex);
+        }
+        Map<String, String> row = rows.get(rowIndex);
+        String columnName = columns.get(columnIndex).getName();
+        return row.getOrDefault(columnName, "N/A");
+    }
 }

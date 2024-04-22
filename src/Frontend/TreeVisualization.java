@@ -1,11 +1,17 @@
 package Frontend;
 
-import Backend.*;
+import Backend.BRIN.BrinBlock;
+import Backend.BRIN.BrinIndex;
+import Backend.Bitmap.BitmapIndex;
 import Backend.Database.Column;
 import Backend.Database.Database;
 import Backend.Database.Table;
+import Backend.GRID.Grid;
 import Backend.KDTree.KDTree;
+import Backend.NewSQLListener;
+import Backend.Node;
 import Backend.QuadTree.QuadTree;
+import Backend.TableNotFoundException;
 import antlr4.PostgreSQLLexer;
 import antlr4.PostgreSQLParser;
 import org.antlr.v4.runtime.*;
@@ -14,7 +20,6 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.Point;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -35,7 +40,7 @@ public class TreeVisualization extends JPanel {
     private Map<String, Integer> currentPages = new HashMap<>();
     private Map<String, Integer> rowsPerPage = new HashMap<>();
     private Map<String, Integer> rowsCountPerTable = new HashMap<>();
-
+    private BrinIndex brinIndex;
 
     public TreeVisualization() {
         database= new Database();
@@ -156,23 +161,26 @@ public class TreeVisualization extends JPanel {
         tablesPanel.repaint();
     }
 
+
+
+
     private void createIndexFromTable(String sql) {
-        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)_tree \\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+) \\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(sql);
         if (matcher.find()) {
             String indexName = matcher.group(1).trim();
             String tableName = matcher.group(2).trim();
-            String  treeType = matcher.group(3).trim();
+            String  Type = matcher.group(3).trim();
             String firstColumnName = matcher.group(4).trim();
-            String secondColumnName = (matcher.groupCount() > 4) ? matcher.group(5).trim() : null;
+            String secondColumnName = (matcher.groupCount() > 4 && matcher.group(5) != null) ? matcher.group(5).trim() : null;
 
 
-            switch (treeType.toLowerCase()) {
-                case "b":
+            switch (Type.toLowerCase()) {
+                case "b_tree":
                     System.out.println("createBPlusTree");
                     createBPlusTree(tableName, firstColumnName);
                     break;
-                case "kd":
+                case "kd_tree":
                     System.out.println("Creating KD Tree Index");
                     if (secondColumnName == null) {
                         System.out.println("Error: KD tree requires two columns.");
@@ -180,9 +188,38 @@ public class TreeVisualization extends JPanel {
                         createKDTree(tableName, firstColumnName, secondColumnName);
                     }
                     break;
-                case "quad":
-                    System.out.println("Creating Quad Tree Index");
-                    createQuadTree(tableName, firstColumnName, secondColumnName);
+                case "quad_tree":
+                    if (secondColumnName == null) {
+                        JOptionPane.showMessageDialog(this, "Quad tree requires two columns.", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        System.out.println("Creating Quad Tree Index");
+                        createQuadTree(tableName, firstColumnName, secondColumnName);
+                    }
+                    break;
+                case "brin":
+                    //todo not done yet
+                    System.out.println("Creating BRIN Index");
+                    createBrinIndex(tableName, firstColumnName);
+                    break;
+                case "bitmap":
+                    //todo not done yet
+                    System.out.println("Creating Bitmap Index");
+                    visualizeColumnBitmap(tableName, firstColumnName);
+                    break;
+                case "grid":
+                    //todo
+                    System.out.println("Creating Grid Index");
+                    createGridIndex(tableName, firstColumnName, secondColumnName);
+                    break;
+                case "extensible hashtable":
+                    //todo
+                    System.out.println("Creating Extensible Hash Table Index");
+                    createExtensibleHashTableIndex(tableName, firstColumnName);
+                    break;
+                case "linear hashtable":
+                    //todo
+                    System.out.println("Creating Linear Hash Table Index");
+                    createLinearHashTableIndex(tableName, firstColumnName);
                     break;
                 default:
                     System.out.println("Unsupported tree type specified.");
@@ -192,6 +229,102 @@ public class TreeVisualization extends JPanel {
             System.out.println("Invalid SQL syntax for creating index.");
         }
     }
+
+    private void createLinearHashTableIndex(String tableName, String firstColumnName) {
+    }
+
+    private void createExtensibleHashTableIndex(String tableName, String firstColumnName) {
+    }
+
+    private void createGridIndex(String tableName, String firstColumnName, String secondColumnName) {
+        try {
+            Table table = database.getTable(tableName);
+            int rows = getRows();
+            int columns = table.getColumns().size();
+
+            Grid gridIndex = new Grid(rows, columns);
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns; j++) {
+                    try {
+                        Object value = table.getValueAt(i, j);
+                        int intValue = Integer.parseInt(value.toString());
+                        gridIndex.addToBucket(i, intValue);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid integer format in grid data: " + e.getMessage());
+                    }
+                }
+            }
+
+            visualizeGridIndex(gridIndex);
+        } catch (TableNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private void visualizeGridIndex(Grid gridIndex) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            GridGUI gridIndexGUI = new GridGUI();
+            treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
+
+
+    private void visualizeColumnBitmap(String tableName, String columnName) {
+        try {
+            List<String> data = database.getDataFromTable(tableName, columnName);
+            BitmapIndex bitmapIndex = new BitmapIndex(data.size());
+            Map<String, List<Integer>> indexMap = new HashMap<>();
+            for (int i = 0; i < data.size(); i++) {
+                String trimmedValue = data.get(i).replace("'", "").trim();
+                indexMap.computeIfAbsent(trimmedValue, k -> new ArrayList<>()).add(i);
+            }
+
+            indexMap.forEach((value, positions) -> {
+                positions.forEach(bitmapIndex::set);
+                System.out.println("Value: " + value + ", Bitmap: " + bitmapIndex);
+                visualizeBitmap(bitmapIndex);
+            });
+
+            visualizeBitmap(bitmapIndex);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index for column " + columnName + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void visualizeBitmap(BitmapIndex bitmap) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            BitmapGUI bitmapGUI = new BitmapGUI(bitmap);
+            treePanel.setGraphComponent(bitmapGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
+
+
+//    private void createBitmapIndex(String tableName, String columnName) {
+//        try {
+//            List<String> data = database.getDataFromTable(tableName, columnName);
+//            BitmapIndex bitmapIndex = new BitmapIndex(data.size());
+//            Map<String, List<Integer>> indexMap = new HashMap<>();
+//
+//            for (int i = 0; i < data.size(); i++) {
+//                String trimmedValue = data.get(i).replace("'", "").trim();
+//                indexMap.computeIfAbsent(trimmedValue, k -> new ArrayList<>()).add(i);
+//            }
+//
+//            indexMap.forEach((value, positions) -> {
+//                positions.forEach(bitmapIndex::set);
+//                System.out.println("Value: " + value + ", Bitmap: " + bitmapIndex);
+//            });
+//
+//            visualizeBitmap(bitmapIndex);
+//        } catch (Exception e) {
+//            JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//        }
+//    }
 
     private void createQuadTree(String tableName, String columnName, String secondColumnName) {
         try {
@@ -243,7 +376,6 @@ public class TreeVisualization extends JPanel {
 
         List<Backend.Point> points = new ArrayList<>();
         //KDTree kdTree = new KDTree();
-
         for (int i = 0; i < xData.size(); i++) {
             int x = Integer.parseInt(xData.get(i).replace("'", "").trim());
             int y = Integer.parseInt(yData.get(i).replace("'", "").trim());
@@ -282,7 +414,6 @@ public class TreeVisualization extends JPanel {
             System.out.println("before refreshVis");
             bPlusTreeGUI.refreshVis();
             System.out.println("after refreshVis");
-
             treePanel.setGraphComponent(bPlusTreeGUI.getGraphComponent());
             System.out.println("after setGraphComponent");
             treePanel.revalidate();
@@ -290,6 +421,31 @@ public class TreeVisualization extends JPanel {
         });
     }
 
+    private void createBrinIndex(String tableName, String firstColumnName) {
+        int pages = getPages();
+        int rows = getRows();
+        brinIndex = new BrinIndex();
+        List<String> data = database.getDataFromTable(tableName, firstColumnName);
+        for (int i = 0; i < pages; i++) {
+            int Index = i * rows;
+            int toIndex = Math.min((i + 1) * rows, data.size());
+            List<String> pageData = data.subList(Index, toIndex);
+            int min = Integer.parseInt(Collections.min(pageData).replace("'", "").trim());
+            int max = Integer.parseInt(Collections.max(pageData).replace("'", "").trim());
+            brinIndex.addBlock(new BrinBlock(min, max));
+        }
+        visualizeBrinIndex();
+    }
+
+    private void visualizeBrinIndex() {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            BrinGUI brinGUI = new BrinGUI(brinIndex);
+            treePanel.add(brinGUI,BorderLayout.CENTER);
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
 
     private void executeSQL(String sql) {
         if(sql.trim().isEmpty()){
@@ -372,6 +528,7 @@ public class TreeVisualization extends JPanel {
     public int getPages() {
         return pages;
     }
+
     public int getRows() {
         return rows;
     }
@@ -459,13 +616,6 @@ public class TreeVisualization extends JPanel {
 
             tables.put(tableName, scrollPane);
             tablesPanel.add(scrollPane);
-
-//            JLabel tableLabel = new JLabel(String.format("%s: %d pages,%d rows", tableName, pages, rows));
-//            System.out.print(tableLabel);
-//            tableLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//            tableLabel.setPreferredSize(new Dimension(200, 50));
-//            tables.put(tableName, tableLabel);
-//            tablesPanel.add(tableLabel);
         }
         tablesPanel.revalidate();
         tablesPanel.repaint();
@@ -592,23 +742,6 @@ public class TreeVisualization extends JPanel {
         }
     }
 
-
-
-
-    public void updateTableVisualization(String tableName, List<String> values) {
-        SwingUtilities.invokeLater(() -> {
-            JTable table = findTableInUI(tableName);
-            if (table != null) {
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.addRow(values.toArray());
-                table.revalidate();
-                table.repaint();
-            } else {
-                System.err.println("Table '" + tableName + "' not found in the visualization.");
-            }
-        });
-    }
-
     private JTable findTableInUI(String tableName) {
         for (Component comp : tablesPanel.getComponents()) {
             if (comp instanceof JScrollPane) {
@@ -621,50 +754,6 @@ public class TreeVisualization extends JPanel {
         }
         return null;
     }
-
-
-    private void updatePageAfterInsert(String tableName) {
-        int rows = rowsCountPerTable.getOrDefault(tableName, 0) + 1;
-        int rowsPerPage = getRowsPerPage(tableName);
-        int currentPageIndex = getCurrentPageIndex(tableName);
-        int totalPages = (int) Math.ceil((double) rows / rowsPerPage);
-
-        rowsCountPerTable.put(tableName, rows);
-
-        if (totalPages > currentPageIndex + 1) {
-            currentPages.put(tableName, currentPageIndex + 1);
-        }
-    }
-
-    public void addRowToTable(String tableName, List<String> values) {
-        SwingUtilities.invokeLater(() -> {
-            JScrollPane scrollPane = (JScrollPane) tables.get(tableName);
-            if (scrollPane != null) {
-
-                JTable table = (JTable) scrollPane.getViewport().getView();
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                int currentPage = getCurrentPageIndex(tableName);
-                int rowCount = rowsCountPerTable.getOrDefault(tableName, 0);
-                int maxRows = getRowsPerPage(tableName);
-                if (rowCount < maxRows * currentPage) {
-
-                    model.addRow(values.toArray(new Object[0]));
-                    rowsCountPerTable.put(tableName, rowCount + 1);
-
-                } else {
-
-                    JOptionPane.showMessageDialog(null, "Error in addRowToTable: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-
-                }
-
-                table.revalidate();
-                table.repaint();
-            } else {
-                JOptionPane.showMessageDialog(null, "Table not found in UI: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-    }
-
 
     private ParseTree processSQL(String sql){
         //convert text to ANTLR input stream
@@ -685,15 +774,6 @@ public class TreeVisualization extends JPanel {
         });
         return parser.stmt();
     }
-
-    public int getCurrentPageIndex(String tableName) {
-        return currentPages.getOrDefault(tableName, 0);
-    }
-
-    public int getRowsPerPage(String tableName) {
-        return rowsPerPage.getOrDefault(tableName, 10);
-    }
-
 
     public static void main(String [] args){
         SwingUtilities.invokeLater(() -> {

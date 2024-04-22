@@ -66,6 +66,13 @@ public class Grid {
             return new ArrayList<>();
         }
     }
+    public int getRows() {
+        return rows;
+    }
+
+    public int getColumns() {
+        return columns;
+    }
 
     private boolean isValidCell(int row, int column) {
         return row >= 0 && row < rows && column >= 0 && column < columns;
@@ -73,5 +80,9 @@ public class Grid {
 
     private boolean isValidBucket(int bucketIndex) {
         return bucketIndex >= 0 && bucketIndex < buckets.size();
+    }
+
+    public int getBucketsSize() {
+        return buckets.size();
     }
 }

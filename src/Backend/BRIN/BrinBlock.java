@@ -1,17 +1,52 @@
 package Backend.BRIN;
 
-import java.util.Objects;
+import java.util.*;
 
 public class BrinBlock {
     private int min;
     private int max;
+    private List<BrinBlock> children;
+
     public BrinBlock(int min, int max) {
-        if (min > max) {
-            throw new IllegalArgumentException("Minimum value cannot be greater than maximum value.");
-        }
         this.min = min;
         this.max = max;
+        this.children = new ArrayList<>();
+
     }
+
+    public void insert(int value) {
+        if (value < min) min = value;
+        if (value > max) max = value;
+        // Determine if the value should spawn a new child or merge into an existing one
+        boolean merged = false;
+        for (BrinBlock child : children) {
+            if (child.fits(value) || child.isAdjacent(value)) {
+                child.insert(value);
+                merged = true;
+                break;
+            }
+        }
+        if (!merged) {
+            children.add(new BrinBlock(value, value));
+        }
+        mergeChildrenIfNeeded();
+    }
+
+    private void mergeChildrenIfNeeded() {
+        Collections.sort(children, Comparator.comparingInt(a -> a.min));
+        List<BrinBlock> merged = new ArrayList<>();
+        BrinBlock prev = null;
+        for (BrinBlock curr : children) {
+            if (prev != null && (prev.max + 1 >= curr.min)) {
+                prev.max = Math.max(prev.max, curr.max);
+            } else {
+                merged.add(curr);
+                prev = curr;
+            }
+        }
+        children = merged;
+    }
+
 
     public boolean fits(int value) {
         return value >= min && value <= max;
@@ -28,12 +63,20 @@ public class BrinBlock {
     }
 
     public boolean canMergeWith(BrinBlock other) {
-        return this.max + 1 >= other.min;
+        return this.max + 1 == other.min || this.min - 1 == other.max;
     }
 
     public void mergeWith(BrinBlock other) {
         this.min = Math.min(this.min, other.min);
         this.max = Math.max(this.max, other.max);
+    }
+
+    public List<BrinBlock> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<BrinBlock> children) {
+        this.children = children;
     }
 
     public int rangeSize() {
@@ -57,8 +100,7 @@ public class BrinBlock {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BrinBlock brinBlock = (BrinBlock) o;
-        return min == brinBlock.min &&
-                max == brinBlock.max;
+        return min == brinBlock.min && max == brinBlock.max;
     }
 
     @Override
