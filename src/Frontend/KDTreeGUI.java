@@ -31,14 +31,11 @@ public class KDTreeGUI extends JFrame {
     private void initializeComponents() {
         graphComponent = new GraphComponent();
         getContentPane().add(graphComponent, BorderLayout.CENTER);
-
-        setTitle("KD-Tree Visualization");
+        setTitle("KDTree Visualization");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JTextField xField = new JTextField(10);
         JTextField yField = new JTextField(10);
-
-
         initializeGraph();
     }
 
@@ -46,7 +43,6 @@ public class KDTreeGUI extends JFrame {
         IGraph graph = graphComponent.getGraph();
         visualizeKDNode(graph, kdTree.getRoot(), null,0);
         applyTreeLayout(graphComponent);
-
     }
 
     private void applyTreeLayout(GraphComponent graphComponent) {
@@ -64,18 +60,14 @@ public class KDTreeGUI extends JFrame {
         nodeStyle.setPaint(Color.WHITE);
         SizeD size = new SizeD(40,20);
         nodeStyle.setKeepingIntrinsicAspectRatioEnabled(false);
-
         INode yNode = graph.createNode(new RectD(0,0, size.width,size.height), nodeStyle);
         graph.setStyle(yNode, nodeStyle);
         Point point = kdNode.getPoint();
         String label = depth % 2 ==0 ? point.getLabelX() + ": " + point.getX() : point.getLabelY() + ": " + point.getY();
-
         graph.addLabel(yNode, label);
-
         if (parentNode != null) {
             graph.createEdge(parentNode, yNode);
         }
-
         visualizeKDNode(graph, kdNode.getLeft(), yNode, depth+1);
         visualizeKDNode(graph, kdNode.getRight(), yNode, depth+1);
     }

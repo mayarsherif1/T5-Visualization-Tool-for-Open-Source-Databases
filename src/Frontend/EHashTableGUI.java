@@ -3,6 +3,7 @@ package Frontend;
 import Backend.HashTable.EBDirectory;
 import Backend.HashTable.EBIndex;
 import com.yworks.yfiles.geometry.PointD;
+import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;
 import com.yworks.yfiles.graph.styles.ShapeNodeStyle;
@@ -62,7 +63,7 @@ public class EHashTableGUI {
             String input = capacityField.getText().trim();
             if (!input.isEmpty()) {
                 int capacity = Integer.parseInt(input);
-                directory = new EBDirectory(8, 2, capacity);
+                directory = new EBDirectory(1,capacity);
                 initializeGraph();
                 inputField.setEnabled(true);
                 addButton.setEnabled(true);
@@ -126,17 +127,25 @@ public class EHashTableGUI {
 
     private void updateGraphVisualization() {
         graph.clear();
-        int xPosition = 100;
-        int yPositionIncrement = 100;
-        int xEntryOffset = 300;
-        int yEntryIncrement = 30;
+        int yPosition = 100;
+        int xPositionIncrement = 250;
+        int yEntryOffset = 50;
+        int xEntryIncrement = 30;
+
         int totalNumberOfBuckets = directory.length();
         int digits = directory.getGlobalDepth();
         bucketNodes = new INode[totalNumberOfBuckets];
 
+        double nodeWidth = 50;
+        double nodeHeight = 30;
+
         for (int i = 0; i < totalNumberOfBuckets; i++) {
-            PointD bucketPosition = new PointD(xPosition, i * yPositionIncrement);
-            bucketNodes[i]= graph.createNode(bucketPosition);
+            double xPos = i * xPositionIncrement;
+            PointD bucketPosition = new PointD(xPos, yPosition);
+            //PointD bucketPosition = new PointD(i * xPositionIncrement, yPosition);
+            //bucketNodes[i] = graph.createNode(bucketPosition);
+            bucketNodes[i] = graph.createNode(new RectD(bucketPosition.getX(), bucketPosition.getY(), nodeWidth, nodeHeight));
+
             String bucketLabel = formatBucketLabel(i, digits);
             graph.addLabel(bucketNodes[i], bucketLabel);
             System.out.println("Visualizing Bucket: " + bucketLabel);
@@ -145,7 +154,7 @@ public class EHashTableGUI {
 
             for (EBIndex index : indexes) {
                 if (index != null && !index.isDeleted()) {
-                    PointD entryPosition = new PointD(xPosition + xEntryOffset, bucketPosition.getY() + entryIndex * yEntryIncrement);
+                    PointD entryPosition = new PointD(bucketPosition.getX() + entryIndex * xEntryIncrement, bucketPosition.getY() + yEntryOffset);
                     INode entryNode = graph.createNode(entryPosition);
                     graph.addLabel(entryNode, index.toString());
                     graph.createEdge(bucketNodes[i], entryNode);
@@ -175,12 +184,12 @@ public class EHashTableGUI {
         return (int) Math.ceil(Math.log(numberOfBuckets) / Math.log(2));
     }
     private String formatBucketLabel(int bucketIndex, int totalDigits) {
-        if(totalDigits<=0){
-            totalDigits=1;
+        String binaryString = Integer.toBinaryString(bucketIndex);
+        while (binaryString.length() < totalDigits) {
+            binaryString = "0" + binaryString;
         }
-        return String.format("%" + totalDigits + "s", Integer.toBinaryString(bucketIndex)).replace(' ', '0');
+        return binaryString;
     }
-
 
 
     public static void main(String[] args) {

@@ -239,16 +239,15 @@ public class TreeVisualization extends JPanel {
     private void createGridIndex(String tableName, String firstColumnName, String secondColumnName) {
         try {
             Table table = database.getTable(tableName);
-            int rows = getRows();
+            int rows = table.getRows().size();
             int columns = table.getColumns().size();
-
             Grid gridIndex = new Grid(rows, columns);
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
+                    Object value = table.getValueAt(i, j);
                     try {
-                        Object value = table.getValueAt(i, j);
-                        int intValue = Integer.parseInt(value.toString());
-                        gridIndex.addToBucket(i, intValue);
+                        int intValue = Integer.parseInt(value.toString().replace("'", "").trim());
+                        gridIndex.addToBucket(i, j, intValue);
                     } catch (NumberFormatException e) {
                         System.err.println("Invalid integer format in grid data: " + e.getMessage());
                     }
@@ -258,12 +257,15 @@ public class TreeVisualization extends JPanel {
             visualizeGridIndex(gridIndex);
         } catch (TableNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error creating grid index: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void visualizeGridIndex(Grid gridIndex) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            GridGUI gridIndexGUI = new GridGUI();
+            GridGUI gridIndexGUI = new GridGUI(gridIndex);
             treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();

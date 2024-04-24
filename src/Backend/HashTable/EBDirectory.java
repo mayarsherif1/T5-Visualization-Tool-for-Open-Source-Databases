@@ -5,14 +5,18 @@ import java.util.*;
 public class EBDirectory implements EBPartitionedHashIndex{
 
     private EBBucketList[] bucketListArray;
-    private final int bitsAssigned;
+    private int bitsAssigned;
     private final int pageSize;
 
-    public EBDirectory(int numberOfEntries, int bitsAssigned, int pageSize) {
+    public EBDirectory(int bitsAssigned, int pageSize) {
         this.bitsAssigned = bitsAssigned;
-        this.bucketListArray = new EBBucketList[numberOfEntries];
+        this.bucketListArray = new EBBucketList[2];
         this.pageSize = pageSize;
+        for (int i = 0; i < this.bucketListArray.length; i++) {
+            this.bucketListArray[i] = new EBBucketList(this.pageSize);
+        }
     }
+
 
 
     private String binaryHashCode(Object object) {
@@ -223,7 +227,7 @@ public class EBDirectory implements EBPartitionedHashIndex{
 
         if (localDepth >= globalDepth) {
             resizeDirectory();
-            globalDepth++;
+            //globalDepth++;
         }
 
         int newBucketIndex = bucketIndex + (1 << localDepth);
@@ -238,14 +242,15 @@ public class EBDirectory implements EBPartitionedHashIndex{
     }
 
     private void resizeDirectory() {
-        EBBucketList[] newDirectory = new EBBucketList[bucketListArray.length * 2];
+        int newLength = bucketListArray.length * 2;
+        EBBucketList[] newDirectory = new EBBucketList[newLength];
         for (int i = 0; i < bucketListArray.length; i++) {
             newDirectory[i] = bucketListArray[i];
-            newDirectory[i + bucketListArray.length] = new EBBucketList(pageSize);
+            newDirectory[i + bucketListArray.length] = new EBBucketList(this.pageSize);
         }
         bucketListArray = newDirectory;
+        this.bitsAssigned++;
     }
-
 
     private void redistributeEntries(EBBucketList originalBucket, EBBucketList newBucket, int oldIndex, int newIndex, int depth) {
         Iterator<EBIndex> iterator = originalBucket.getAllIndexes().iterator();
@@ -271,7 +276,11 @@ public class EBDirectory implements EBPartitionedHashIndex{
     }
     public int getBucketIndex(EBIndex index) {
         int hash = index.hashCode();
-        return hash & (this.bucketListArray.length - 1);
+        int globalDepthMask = (1 << getGlobalDepth()) - 1;
+        return hash & globalDepthMask;
     }
+
+
+
 
 }

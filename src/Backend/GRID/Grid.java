@@ -7,7 +7,7 @@ public class Grid {
     private int rows;
     private int columns;
     private List<List<Integer>> grid;
-    private List<List<Integer>> buckets;
+    private List<List<List<Integer>>> buckets;
 
     public Grid(int rows, int columns) {
         this.rows = rows;
@@ -15,6 +15,7 @@ public class Grid {
         this.grid = new ArrayList<>();
         this.buckets = new ArrayList<>();
         initialize();
+        initializeBuckets(rows, columns);
     }
 
     public void initialize() {
@@ -27,9 +28,14 @@ public class Grid {
         }
     }
 
-    public void initializeBuckets(int numberOfBuckets) {
-        for (int i = 0; i < numberOfBuckets; i++) {
-            buckets.add(new ArrayList<>());
+    public void initializeBuckets(int numRows, int numCols) {
+        for (int i = 0; i < numRows; i++) {
+            List<List<Integer>> bucketRow = new ArrayList<>();
+            for (int j = 0; j < numCols; j++) {
+                bucketRow.add(new ArrayList<>());
+                System.out.println("Bucket row: " + bucketRow);
+            }
+            buckets.add(bucketRow);
         }
     }
 
@@ -50,22 +56,25 @@ public class Grid {
         }
     }
 
-    public void addToBucket(int bucketIndex, int value) {
-        if (isValidBucket(bucketIndex)) {
-            buckets.get(bucketIndex).add(value);
+    public void addToBucket(int row, int col, int value) {
+        if (isValidCell(row, col)) {
+            buckets.get(row).get(col).add(value);
+            System.out.println("Value added to bucket: " + value);
         } else {
-            System.out.println("Invalid bucket index.");
+            System.out.println("Invalid bucket coordinates.");
         }
     }
 
-    public List<Integer> getBucket(int bucketIndex) {
-        if (isValidBucket(bucketIndex)) {
-            return buckets.get(bucketIndex);
+    public List<Integer> getBucket(int row, int col) {
+        if (isValidCell(row, col)) {
+            return buckets.get(row).get(col);
         } else {
-            System.out.println("Invalid bucket index.");
+            System.out.println("Invalid bucket coordinates.");
             return new ArrayList<>();
         }
     }
+
+
     public int getRows() {
         return rows;
     }
@@ -83,6 +92,15 @@ public class Grid {
     }
 
     public int getBucketsSize() {
-        return buckets.size();
+        return rows * columns;
+    }
+    public int getBucketValue(int row) {
+        int sum = 0;
+        for (List<Integer> bucketRow : buckets.get(row)) {
+            for (Integer value : bucketRow) {
+                sum += value;
+            }
+        }
+        return sum;
     }
 }

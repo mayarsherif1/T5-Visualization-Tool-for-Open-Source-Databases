@@ -8,10 +8,10 @@ public class EBPartitionedHashTable implements EBPartitionedHashIndex{
     private String[] keys;
     private final int bitsAssigned;
 
-    public EBPartitionedHashTable(String[] keys) {
+    public EBPartitionedHashTable(String[] keys, int pageSize) {
         this.setKeys(keys);
-        bitsAssigned = 2;
-        this.directory = new EBDirectory((int) Math.pow(2, bitsAssigned * keys.length), bitsAssigned, 100);
+        bitsAssigned = 1;
+        this.directory = new EBDirectory(bitsAssigned, pageSize);
     }
     public String[] getKeys() {
         return keys;

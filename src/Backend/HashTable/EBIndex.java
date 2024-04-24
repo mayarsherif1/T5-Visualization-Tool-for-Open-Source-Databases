@@ -1,7 +1,5 @@
 package Backend.HashTable;
 
-import java.util.Arrays;
-
 public class EBIndex {
     private final String[] values;
     private String pageName;
@@ -75,16 +73,18 @@ public class EBIndex {
     }
 
     public String toString() {
-        return "Values: [" + String.join(",", values) + "]\t" + "Page: " + pageName + "\t" + "Row: " + rowNumber + "\t";
+        return "Values: [" + String.join(",", values) + "]\t";
     }
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(values);
-        result = 31 * result + pageName.hashCode();
-        result = 31 * result + Integer.hashCode(rowNumber);
-        result = 31 * result + Boolean.hashCode(isDeleted);
+        int result = 1;
+        for (String value : values) {
+            result = 31 * result + (value != null ? value.hashCode() : 0);
+        }
         return result;
     }
+
+
 
 
 }

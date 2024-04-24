@@ -1,280 +1,127 @@
 package Backend.HashTable;
 
-import Backend.DataType;
+public class LinearHashTable {
+    private Integer[] hashTable;
+    private int capacity;
+    private int size =0;
+    private double maxUtilization;
 
-import java.util.*;
-
-public class LinearHashTable implements Map<DataType, DataType> {
-    private final float loadFactor;
-    private final int bucketSize;
-    private int size;
-    private int digits;
-    private int hashSeed;
-    private int numberOfItems;
-    private final ArrayList<Bucket> buckets;
-
-    public LinearHashTable(float loadFactor, int bucketSize) {
-        this.loadFactor = loadFactor;
-        this.bucketSize = bucketSize;
-        buckets = new ArrayList<>();
-        init();
-    }
-    private void init() {
-        size = 0;
-        digits = 1;
-        Bucket bucket = new Bucket(bucketSize);
-        buckets.add(bucket);
-        Random generator = new Random();
-        hashSeed = generator.nextInt();
+    public LinearHashTable(int capacity, double maxUtilization) {
+        this.capacity = capacity;
+        hashTable = new Integer[capacity];
+        this.maxUtilization = maxUtilization;
     }
 
-    @Override
-    public int size() {
-        return numberOfItems;
+    private int hash(int key) {
+        return key % capacity;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return numberOfItems==0;
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return getEntry(key)!=null;
-    }
-
-    private LHTEntry getEntry(Object key) {
-        if (key instanceof DataType) {
-            int b = getBucket((DataType) key);
-            Bucket bucket = buckets.get(b);
-            LHTEntry entry;
-            entry = bucket.getEntry(key);
-            return entry;
-        }
-        return null;
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return false;
-    }
-
-    @Override
-    public DataType get(Object key) {
-        LHTEntry entry = getEntry(key);
-        return null == entry ? null : entry.getValue();
-    }
-
-    public int getBucket(DataType key) {
-        int hash = hash(key);
-        int bits = hash & ((int) Math.pow(2, digits) - 1);
-        if (bits <= size) {
-            return bits;
-        } else {
-            bits = bits - (int) Math.pow(2, (digits - 1));
-            return bits;
-        }
-    }
-
-    @Override
-    public DataType put(DataType key, DataType value) {
-        int b = getBucket(key);
-        Bucket bucket = buckets.get(b);
-        int hash = hash(key);
-        bucket.put(key, value, hash);
-        numberOfItems++;
-        if (numberOfItems / ((size + 1) * bucketSize) >= loadFactor) {
+    public void insert(String binaryKey) {
+        if (getUtilization() >= maxUtilization) {
             resize();
         }
-        return null;
+        int key = Integer.parseInt(binaryKey, 2);
+        int index = hash(key);
+        int startIndex = index;
+        while (hashTable[index] != null) {
+            System.out.println("Collision at " + index + "; trying next index.");
+            index = (index + 1) % capacity;
+            if (index == startIndex) {
+                System.out.println("Hash table is full. Unable to insert key: " + key);
+                return;
+            }
+        }
+        hashTable[index] = key;
+        size++;
+        System.out.println("Inserted key " + key + " at index " + index);
     }
 
     private void resize() {
-        size++;
-        Bucket b = new Bucket(bucketSize);
-        buckets.add(b);
-        if (size == (int) Math.pow(2, digits)) {
-            digits++;
-        }
-        int index = size - (int) Math.pow(2, digits - 1);
-        Bucket bucket = buckets.get(index);
-        bucket.scan();
-    }
+        int newCapacity = capacity * 2;
+        Integer[] newTable = new Integer[newCapacity];
+        Integer[] oldTable = hashTable;
+        hashTable = newTable;
+        capacity = newCapacity;
+        size = 0;
 
-    public void downSize() {
-
-    }
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    final int hash(Object k) {
-        int h = hashSeed;
-        h ^= k.hashCode();
-        h ^= (h >>> 20) ^ (h >>> 12);
-        return h ^ (h >>> 7) ^ (h >>> 4);
-    }
-
-    @Override
-    public DataType remove(Object key) {
-        int b = getBucket((DataType) key);
-        Bucket bucket = buckets.get(b);
-        LHTEntry entry = bucket.remove((DataType) key);
-        numberOfItems--;
-        return entry.getValue();
-    }
-
-    @Override
-    public void putAll(Map<? extends DataType, ? extends DataType> m) {
-        //todo
-    }
-
-    @Override
-    public void clear() {
-        //todo
-    }
-
-    @Override
-    public Set<DataType> keySet() {
-        //todo
-        return null;
-    }
-
-    @Override
-    public Collection<DataType> values() {
-        //todo
-        return null;
-    }
-
-    @Override
-    public Set<Entry<DataType, DataType>> entrySet() {
-        //todo
-        return null;
-    }
-
-    class Bucket {
-
-        LHTEntry[] entries;
-        int lastItem;
-        LinkedList<LHTEntry> overflow;
-
-        public Bucket(int bucketSize) {
-            entries = new LHTEntry[bucketSize];
-            lastItem = 0;
-        }
-        public LHTEntry remove(DataType key) {
-            LHTEntry r = null;
-            for (int i = 0; i < lastItem; i++) {
-                if (entries[i].getKey().equals(key)) {
-                    r = entries[i];
-                    for (int j = i; j < lastItem - 1; j++) {
-                        entries[j] = entries[j + 1];
-                    }
-                    if (overflow != null) {
-                        if (!overflow.isEmpty()) {
-                            LHTEntry entry = overflow.removeFirst();
-                            entries[entries.length - 1] = entry;
-                            lastItem++;
-                        }
-                    }
-                    lastItem--;
-                    return r;
-                }
+        for (Integer key : oldTable) {
+            if (key != null) {
+                insert(Integer.toBinaryString(key));
             }
-            if (overflow != null) {
-                Iterator<LHTEntry> itr = overflow.iterator();
-                while (itr.hasNext()) {
-                    LHTEntry element = itr.next();
-                    if ((element.getKey()).equals(key)) {
-                        r = element;
-                        itr.remove();
-                        break;
-                    }
-                }
-            }
-            return r;
         }
+    }
 
-        public LHTEntry getEntry(Object key) {
-            for (int i = 0; i < lastItem; i++) {
-                DataType dataKey = (DataType) key;
-                if (entries[i].getKey().equals(dataKey)) {
-                    return entries[i];
-                }
+
+    public boolean find(int key) {
+        int index = hash(key);
+        while (hashTable[index] != null) {
+            if (hashTable[index] == key) {
+                return true;
             }
-            return null;
+            index = (index + 1) % capacity;
+            if (index == hash(key)) { // If we return to the starting index
+                break;
+            }
         }
+        return false;
+    }
 
-        public void put(DataType key, DataType value, int hash) {
-            if (lastItem == entries.length) {
-                overflow.add(new LHTEntry(key, value, hash));
+    // Method to delete a key from the hash table
+    public void delete(int key) {
+        int index = hash(key);
+        while (hashTable[index] != null) {
+            if (hashTable[index] == key) {
+                hashTable[index] = null; // Set the slot to null to delete the key
+                rehash(index);
+                return;
+            }
+            index = (index + 1) % capacity;
+            if (index == hash(key)) { // If we return to the starting index
+                break;
+            }
+        }
+        size--;
+        System.out.println("Key not found: " + key);
+    }
+
+    // Rehash the keys in the case of a deletion
+    private void rehash(int start) {
+        int index = (start + 1) % capacity;
+        int startIndex = index;
+        while (hashTable[index] != null) {
+            Integer keyToRehash = hashTable[index];
+            System.out.println("Rehashing key " + keyToRehash + " from index " + index);
+            hashTable[index] = null;
+            insert(Integer.toBinaryString(keyToRehash));
+            index = (index + 1) % capacity;
+            if (index == startIndex) {
+                System.out.println("Completed one full cycle. Breaking rehash.");
+                break;
+            }
+        }
+    }
+
+    // Method to display the hash table
+    public void displayTable() {
+        System.out.println("Hash Table: ");
+        for (int i = 0; i < capacity; i++) {
+            if (hashTable[i] == null) {
+                System.out.println(i + ": null");
             } else {
-                entries[lastItem++] = new LHTEntry(key, value, hash);
-                if (lastItem == entries.length) {
-                    overflow = new LinkedList<>();
-                }
-            }
-        }
-
-        public void scan() {
-            for (int i = 0; i < lastItem; i++) {
-                int bits = entries[i].hash & ((int) Math.pow(2, digits) - 1);
-                if (bits > (int) Math.pow(2, digits - 1) - 1) {
-                    LHTEntry entry = entries[i];
-                    remove(entries[i].key);
-                    numberOfItems--;
-                    LinearHashTable.this.put(entry.getKey(), entry.getValue());
-                    i--;
-                }
-            }
-            if (overflow != null) {
-                Iterator<LHTEntry> itr = overflow.iterator();
-                while (itr.hasNext()) {
-                    LHTEntry element;
-                    element = itr.next();
-                    int bits = element.hash & ((int) Math.pow(2, digits) - 1);
-                    if (bits > (int) Math.pow(2, digits - 1) - 1) {
-                        itr.remove();
-                        numberOfItems--;
-                        LinearHashTable.this.put(element.getKey(), element.getValue());
-                    }
-                }
+                System.out.println(i + ": " + hashTable[i]);
             }
         }
     }
-    class LHTEntry implements Map.Entry<DataType, DataType> {
-        private final DataType key;
-        private DataType value;
-        private final int hash;
-
-        public LHTEntry(DataType key, DataType value, int hash) {
-            this.key = key;
-            this.value = value;
-            this.hash = hash;
-        }
-
-
-        @Override
-        public DataType getKey() {
-            return key;
-        }
-
-        @Override
-        public DataType getValue() {
-            return value;
-        }
-
-        @Override
-        public DataType setValue(DataType value) {
-            DataType old = this.value;
-            this.value = value;
-            return old;
-        }
-
-        public int getHash() {
-            return hash;
-        }
+    public double getUtilization() {
+        return (double) size / capacity;
     }
 
+
+    public Integer[] getTable() {
+        return hashTable;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
 }
