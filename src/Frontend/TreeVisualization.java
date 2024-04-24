@@ -276,7 +276,7 @@ public class TreeVisualization extends JPanel {
 
     private void visualizeColumnBitmap(String tableName, String columnName) {
         try {
-            List<String> data = database.getDataFromTable(tableName, columnName); // Assumed to exist.
+            List<String> data = database.getDataFromTable(tableName, columnName);
             Map<String, BitmapIndex> bitmapMap = new HashMap<>();
 
             for (int i = 0; i < data.size(); i++) {
@@ -284,8 +284,6 @@ public class TreeVisualization extends JPanel {
                 BitmapIndex bitmapIndex = bitmapMap.computeIfAbsent(value, v -> new BitmapIndex(data.size()));
                 bitmapIndex.set(i);
             }
-
-            // Visualize all bitmaps at once
             visualizeAllBitmaps(bitmapMap);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index for column " + columnName + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -319,28 +317,6 @@ public class TreeVisualization extends JPanel {
         });
     }
 
-
-//    private void createBitmapIndex(String tableName, String columnName) {
-//        try {
-//            List<String> data = database.getDataFromTable(tableName, columnName);
-//            BitmapIndex bitmapIndex = new BitmapIndex(data.size());
-//            Map<String, List<Integer>> indexMap = new HashMap<>();
-//
-//            for (int i = 0; i < data.size(); i++) {
-//                String trimmedValue = data.get(i).replace("'", "").trim();
-//                indexMap.computeIfAbsent(trimmedValue, k -> new ArrayList<>()).add(i);
-//            }
-//
-//            indexMap.forEach((value, positions) -> {
-//                positions.forEach(bitmapIndex::set);
-//                System.out.println("Value: " + value + ", Bitmap: " + bitmapIndex);
-//            });
-//
-//            visualizeBitmap(bitmapIndex);
-//        } catch (Exception e) {
-//            JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-//        }
-//    }
 
     private void createQuadTree(String tableName, String columnName, String secondColumnName) {
         try {
