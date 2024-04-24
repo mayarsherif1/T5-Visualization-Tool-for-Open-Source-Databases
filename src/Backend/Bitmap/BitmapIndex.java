@@ -4,10 +4,11 @@ public class BitmapIndex {
     private final int[] bits;
     private final int size;
 
-    public BitmapIndex(int size) {
-        this.size = size;
-        this.bits = new int[(size + 31) / 32];
+    public BitmapIndex(int maxRow) {
+        this.size = maxRow;
+        this.bits = new int[(this.size + 31) / 32];
     }
+
 
     public void set(int index) {
         if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
@@ -58,6 +59,7 @@ public class BitmapIndex {
         return result;
     }
 
+
     public void setRange(int fromIndex, int toIndex) {
         if (fromIndex < 0 || toIndex >= size || fromIndex > toIndex) throw new IndexOutOfBoundsException();
         for (int i = fromIndex; i <= toIndex; i++) {
@@ -83,5 +85,20 @@ public class BitmapIndex {
 
     public int size() {
         return size;
+    }
+    public void visualizeValues() {
+        StringBuilder sb = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            if (isSet(i)) {
+                sb.append('1');
+            } else {
+                sb.append('0');
+            }
+            if ((i + 1) % 10 == 0) {
+                sb.append('\n');
+            }
+        }
+        System.out.println("Bitmap Visualization:");
+        System.out.println(sb.toString());
     }
 }

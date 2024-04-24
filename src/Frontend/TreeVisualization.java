@@ -14,6 +14,7 @@ import Backend.QuadTree.QuadTree;
 import Backend.TableNotFoundException;
 import antlr4.PostgreSQLLexer;
 import antlr4.PostgreSQLParser;
+import com.yworks.yfiles.view.GraphComponent;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -275,30 +276,43 @@ public class TreeVisualization extends JPanel {
 
     private void visualizeColumnBitmap(String tableName, String columnName) {
         try {
-            List<String> data = database.getDataFromTable(tableName, columnName);
-            BitmapIndex bitmapIndex = new BitmapIndex(data.size());
-            Map<String, List<Integer>> indexMap = new HashMap<>();
+            List<String> data = database.getDataFromTable(tableName, columnName); // Assumed to exist.
+            Map<String, BitmapIndex> bitmapMap = new HashMap<>();
+
             for (int i = 0; i < data.size(); i++) {
-                String trimmedValue = data.get(i).replace("'", "").trim();
-                indexMap.computeIfAbsent(trimmedValue, k -> new ArrayList<>()).add(i);
+                String value = data.get(i).replace("'", "").trim();
+                BitmapIndex bitmapIndex = bitmapMap.computeIfAbsent(value, v -> new BitmapIndex(data.size()));
+                bitmapIndex.set(i);
             }
 
-            indexMap.forEach((value, positions) -> {
-                positions.forEach(bitmapIndex::set);
-                System.out.println("Value: " + value + ", Bitmap: " + bitmapIndex);
-                visualizeBitmap(bitmapIndex);
-            });
-
-            visualizeBitmap(bitmapIndex);
+            // Visualize all bitmaps at once
+            visualizeAllBitmaps(bitmapMap);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index for column " + columnName + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    private void visualizeAllBitmaps(Map<String, BitmapIndex> bitmapMap) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            JTabbedPane tabbedPane = new JTabbedPane();
+            bitmapMap.forEach((value, bitmapIndex) -> {
+                GraphComponent graphComponent = new GraphComponent();
+                BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmapIndex), Collections.singletonList(value));
+                graphComponent = bitmapGUI.getGraphComponent();
+                tabbedPane.addTab(value, graphComponent);
+            });
+            treePanel.add(tabbedPane);
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
+
+
     private void visualizeBitmap(BitmapIndex bitmap) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            BitmapGUI bitmapGUI = new BitmapGUI(bitmap);
+            BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmap), Collections.singletonList("Current Bitmap"));
             treePanel.setGraphComponent(bitmapGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
