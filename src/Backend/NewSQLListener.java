@@ -3,6 +3,7 @@ package Backend;
 import Backend.Database.Column;
 import Backend.Database.Database;
 import Backend.Database.Table;
+import Backend.Exception.TableNotFoundException;
 import antlr4.PostgreSQLParser;
 import antlr4.PostgreSQLParser.ColumnDefContext;
 import antlr4.PostgreSQLParserBaseListener;

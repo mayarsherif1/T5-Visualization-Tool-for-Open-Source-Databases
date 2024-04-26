@@ -2,7 +2,8 @@ package Backend;
 
 import Backend.Database.Database;
 import Backend.Database.Table;
-import Frontend.TreeVisualization;
+import Backend.Exception.TableNotFoundException;
+import Frontend.MainApp;
 import antlr4.PostgreSQLParser;
 import antlr4.PostgreSQLParserBaseListener;
 
@@ -11,9 +12,9 @@ import java.util.List;
 
 public class CustomSQLListener extends PostgreSQLParserBaseListener {
     private Database database;
-    private TreeVisualization visualization;
+    private MainApp visualization;
 
-    public CustomSQLListener(Database database, TreeVisualization visualization){
+    public CustomSQLListener(Database database, MainApp visualization){
         this.database=database;
         this.visualization=visualization;
     }

@@ -1,4 +1,4 @@
-package Backend;
+package Backend.data_type;
 
 public class StringDataType extends DataType {
     private String data;

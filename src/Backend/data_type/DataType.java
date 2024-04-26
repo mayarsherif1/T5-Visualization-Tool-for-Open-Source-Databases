@@ -1,4 +1,4 @@
-package Backend;
+package Backend.data_type;
 
 public abstract class DataType implements Comparable<DataType> {
 

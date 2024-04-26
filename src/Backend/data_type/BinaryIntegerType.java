@@ -1,26 +1,26 @@
-package Backend;
+package Backend.data_type;
 
-public class BinaryInteger extends DataType {
+public class BinaryIntegerType extends DataType {
     private int value;
 
-    public BinaryInteger(int value) {
+    public BinaryIntegerType(int value) {
         this.value = value;
     }
 
     @Override
     public double diff(DataType other) {
-        if (!(other instanceof BinaryInteger)) {
+        if (!(other instanceof BinaryIntegerType)) {
             throw new IllegalArgumentException("Can only compare BinaryInteger with BinaryInteger");
         }
-        return Math.abs(this.value - ((BinaryInteger) other).value);
+        return Math.abs(this.value - ((BinaryIntegerType) other).value);
     }
 
     @Override
     public int compareTo(DataType other) {
-        if (!(other instanceof BinaryInteger)) {
+        if (!(other instanceof BinaryIntegerType)) {
             throw new IllegalArgumentException("Can only compare BinaryInteger with BinaryInteger");
         }
-        return Integer.compare(this.value, ((BinaryInteger) other).value);
+        return Integer.compare(this.value, ((BinaryIntegerType) other).value);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class BinaryInteger extends DataType {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        BinaryInteger that = (BinaryInteger) obj;
+        BinaryIntegerType that = (BinaryIntegerType) obj;
         return this.value == that.value;
     }
 
@@ -41,11 +41,11 @@ public class BinaryInteger extends DataType {
         return Integer.hashCode(value);
     }
 
-    public BinaryInteger bitwiseAnd(BinaryInteger other) {
+    public BinaryIntegerType bitwiseAnd(BinaryIntegerType other) {
         if (other == null) {
             throw new IllegalArgumentException("Argument to bitwiseAnd cannot be null");
         }
-        return new BinaryInteger(this.value & other.value);
+        return new BinaryIntegerType(this.value & other.value);
     }
 
 

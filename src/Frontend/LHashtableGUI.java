@@ -1,7 +1,7 @@
 //package Frontend;
 //
-//import Backend.BinaryInteger;
-//import Backend.DataType;
+//import Backend.data_type.BinaryInteger;
+//import Backend.data_type.DataType;
 //import Backend.HashTable.LinearHashTable;
 //import com.yworks.yfiles.geometry.RectD;
 //import com.yworks.yfiles.graph.IGraph;

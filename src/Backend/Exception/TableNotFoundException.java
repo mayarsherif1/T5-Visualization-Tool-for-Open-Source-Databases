@@ -1,4 +1,4 @@
-package Backend;
+package Backend.Exception;
 
 public class TableNotFoundException extends Exception {
     public TableNotFoundException(String tableName){

@@ -1,7 +1,7 @@
 package Backend.Database;
 
 import Backend.Index;
-import Backend.TableNotFoundException;
+import Backend.Exception.TableNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;

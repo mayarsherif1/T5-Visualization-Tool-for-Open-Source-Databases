@@ -1,9 +1,10 @@
 package Frontend;
 
-import Backend.*;
 import Backend.Database.Column;
 import Backend.Database.Database;
 import Backend.Database.Table;
+import Backend.Exception.TableNotFoundException;
+import Backend.NewSQLListener;
 import antlr4.PostgreSQLLexer;
 import antlr4.PostgreSQLParser;
 import com.yworks.yfiles.graph.IGraph;

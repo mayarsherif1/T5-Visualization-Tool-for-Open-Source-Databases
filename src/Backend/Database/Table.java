@@ -122,4 +122,13 @@ public class Table {
         String columnName = columns.get(columnIndex).getName();
         return row.getOrDefault(columnName, "N/A");
     }
+
+    public List<String> getColumnData(String columnName) {
+        List<String> columnData = new ArrayList<>();
+        for (Map<String, String> row : rows) {
+            columnData.add(row.getOrDefault(columnName, "N/A"));  // Using "N/A" as default if the column name does not exist
+        }
+        return columnData;
+    }
+
 }

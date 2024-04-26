@@ -6,12 +6,13 @@ import Backend.Bitmap.BitmapIndex;
 import Backend.Database.Column;
 import Backend.Database.Database;
 import Backend.Database.Table;
+import Backend.Exception.TableNotFoundException;
 import Backend.GRID.Grid;
+import Backend.HashTable.LinearHashingIndex;
 import Backend.KDTree.KDTree;
 import Backend.NewSQLListener;
 import Backend.Node;
 import Backend.QuadTree.QuadTree;
-import Backend.TableNotFoundException;
 import antlr4.PostgreSQLLexer;
 import antlr4.PostgreSQLParser;
 import com.yworks.yfiles.view.GraphComponent;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-public class TreeVisualization extends JPanel {
+public class MainApp extends JPanel {
     private JTabbedPane tabbedPane;
     private TreePanel treePanel;
     private JTextField sqlTestField;
@@ -43,7 +44,7 @@ public class TreeVisualization extends JPanel {
     private Map<String, Integer> rowsCountPerTable = new HashMap<>();
     private BrinIndex brinIndex;
 
-    public TreeVisualization() {
+    public MainApp() {
         database= new Database();
         setLayout(new BorderLayout());
         tabbedPane= new JTabbedPane();
@@ -166,7 +167,7 @@ public class TreeVisualization extends JPanel {
 
 
     private void createIndexFromTable(String sql) {
-        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+) \\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)\\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(sql);
         if (matcher.find()) {
             String indexName = matcher.group(1).trim();
@@ -203,7 +204,6 @@ public class TreeVisualization extends JPanel {
                     createBrinIndex(tableName, firstColumnName);
                     break;
                 case "bitmap":
-                    //todo not done yet
                     System.out.println("Creating Bitmap Index");
                     visualizeColumnBitmap(tableName, firstColumnName);
                     break;
@@ -212,13 +212,12 @@ public class TreeVisualization extends JPanel {
                     System.out.println("Creating Grid Index");
                     createGridIndex(tableName, firstColumnName, secondColumnName);
                     break;
-                case "extensible hashtable":
+                case "extensible_hashtable":
                     //todo
                     System.out.println("Creating Extensible Hash Table Index");
                     createExtensibleHashTableIndex(tableName, firstColumnName);
                     break;
-                case "linear hashtable":
-                    //todo
+                case "linear_hashtable":
                     System.out.println("Creating Linear Hash Table Index");
                     createLinearHashTableIndex(tableName, firstColumnName);
                     break;
@@ -232,7 +231,53 @@ public class TreeVisualization extends JPanel {
     }
 
     private void createLinearHashTableIndex(String tableName, String firstColumnName) {
+        try {
+            Table table = database.getTable(tableName);
+            List<String> columnData = table.getColumnData(firstColumnName);
+            if (columnData.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No data found in the column: " + firstColumnName, "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            String bucketCapacityInput = JOptionPane.showInputDialog(this, "Enter the bucket capacity:", "Bucket Capacity", JOptionPane.QUESTION_MESSAGE);
+            if (bucketCapacityInput == null || bucketCapacityInput.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Bucket capacity is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String thresholdInput = JOptionPane.showInputDialog(this, "Enter the load factor threshold (e.g., 0.75):", "Threshold for Expansion", JOptionPane.QUESTION_MESSAGE);
+            if (thresholdInput == null || thresholdInput.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Load factor threshold is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int bucketCapacity = Integer.parseInt(bucketCapacityInput);
+            double threshold = Double.parseDouble(thresholdInput);
+
+            LinearHashingIndex hashTable = new LinearHashingIndex(bucketCapacity, threshold);
+            for (String key : columnData) {
+                if (key != null && !key.isEmpty()) {
+                    hashTable.insert(key.replace("'", "").trim());
+                }
+            }
+            visualizeHashTable(hashTable);
+        } catch (TableNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+
+    private void visualizeHashTable(LinearHashingIndex LinearhashTable) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            LinearHashTableVisualizer gridIndexGUI = new LinearHashTableVisualizer(LinearhashTable);
+            treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+
+        });
+    }
+
+
 
     private void createExtensibleHashTableIndex(String tableName, String firstColumnName) {
     }
@@ -761,7 +806,7 @@ public class TreeVisualization extends JPanel {
         parser.addErrorListener(new BaseErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-                JOptionPane.showMessageDialog(TreeVisualization.this, "Failed to parse SQL at line " + line + ": " + msg, "Syntax Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(MainApp.this, "Failed to parse SQL at line " + line + ": " + msg, "Syntax Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         return parser.stmt();
@@ -771,7 +816,7 @@ public class TreeVisualization extends JPanel {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Database Visualizer");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.getContentPane().add(new TreeVisualization());
+            frame.getContentPane().add(new MainApp());
             frame.setSize(800, 600);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
