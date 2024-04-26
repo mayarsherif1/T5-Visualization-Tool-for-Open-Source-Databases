@@ -39,9 +39,6 @@ public class MainApp extends JPanel {
     private JPanel tablesPanel;
     private Map<String,JComponent> tables;
     private Database database;
-    private Map<String, Integer> currentPages = new HashMap<>();
-    private Map<String, Integer> rowsPerPage = new HashMap<>();
-    private Map<String, Integer> rowsCountPerTable = new HashMap<>();
     private BrinIndex brinIndex;
 
     public MainApp() {
@@ -199,7 +196,6 @@ public class MainApp extends JPanel {
                     }
                     break;
                 case "brin":
-                    //todo not done yet
                     System.out.println("Creating BRIN Index");
                     createBrinIndex(tableName, firstColumnName);
                     break;
@@ -352,16 +348,6 @@ public class MainApp extends JPanel {
     }
 
 
-    private void visualizeBitmap(BitmapIndex bitmap) {
-        SwingUtilities.invokeLater(() -> {
-            treePanel.removeAll();
-            BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmap), Collections.singletonList("Current Bitmap"));
-            treePanel.setGraphComponent(bitmapGUI.getGraphComponent());
-            treePanel.revalidate();
-            treePanel.repaint();
-        });
-    }
-
 
     private void createQuadTree(String tableName, String columnName, String secondColumnName) {
         try {
@@ -478,7 +464,8 @@ public class MainApp extends JPanel {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
             BrinGUI brinGUI = new BrinGUI(brinIndex);
-            treePanel.add(brinGUI,BorderLayout.CENTER);
+//            treePanel.add(brinGUI,BorderLayout.CENTER);
+            treePanel.setGraphComponent(brinGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
         });

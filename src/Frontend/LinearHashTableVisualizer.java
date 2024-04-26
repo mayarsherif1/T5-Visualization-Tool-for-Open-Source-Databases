@@ -1,7 +1,6 @@
 package Frontend;
 
 import Backend.HashTable.Bucket;
-import Backend.HashTable.LinearHashTable;
 import Backend.HashTable.LinearHashingIndex;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
@@ -78,7 +77,6 @@ public class LinearHashTableVisualizer extends JFrame {
 
     public static void main(String[] args) {
         LinearHashingIndex hashingIndex = new LinearHashingIndex(2, 0.8);
-        LinearHashTable linearHashTable = new LinearHashTable(8, 2);
 //        linearHashTable.insert("0011");
 //        linearHashTable.insert("1100");
 //        linearHashTable.insert("0101");

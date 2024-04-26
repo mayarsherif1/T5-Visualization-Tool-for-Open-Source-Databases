@@ -19,10 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BrinGUI extends JFrame {
-    private JFrame frame;
-    private JTextArea sqlInputArea;
-    private JButton executeButton;
-    private JPanel visualizationPanel;
     private BrinIndex brinIndex;
     private GraphComponent graphComponent;
 
@@ -128,5 +124,9 @@ public class BrinGUI extends JFrame {
             BrinGUI frame = new BrinGUI(brinIndex);
             frame.setVisible(true);
         });
+    }
+
+    public GraphComponent getGraphComponent() {
+        return graphComponent;
     }
 }
