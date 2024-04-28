@@ -10,6 +10,8 @@ import com.yworks.yfiles.view.Pen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GridGUI extends JPanel {
     private GraphComponent graphComponent;
@@ -20,11 +22,10 @@ public class GridGUI extends JPanel {
     private final int bucketWidth = 50;
     private final int bucketHeight = 60;
     private final int bucketPadding = 10;
-
-    private Grid backendGrid;
+    private Grid grid;
 
     public GridGUI(Grid grid) {
-        this.backendGrid = grid;
+        this.grid = grid;
         this.numRows = grid.getRows();
         this.numCols = grid.getColumns();
         setPreferredSize(new Dimension(800, 600));
@@ -32,7 +33,7 @@ public class GridGUI extends JPanel {
         setLayout(new BorderLayout());
         graphComponent = new GraphComponent();
         add(graphComponent, BorderLayout.CENTER);
-        backendGrid.initializeBuckets(numRows, numCols);
+        this.grid.initializeBuckets(numRows, numCols);
         initializeGraph();
     }
 
@@ -43,26 +44,45 @@ public class GridGUI extends JPanel {
         setupStyles(cellStyle, bucketStyle);
 
         INode[][] cells = new INode[numRows][numCols];
-        INode[] buckets = new INode[numRows];
+        INode[][] buckets = new INode[numRows][numCols];
 
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
                 cells[row][col] = createNode(graph, new RectD(col * cellWidth, row * cellHeight, cellWidth, cellHeight), cellStyle);
-                int value = backendGrid.getCellValue(row, col);
-                updateCellValue(cells[row][col], value);
+                int[] range = grid.getCellRange(row, col);
+                updateCellValue(cells[row][col], range);
+
+                String rangeText = formatRangeLabel(range);
+                graph.addLabel(cells[row][col], rangeText);
+                RectD bucketLayout = new RectD((col + 3) * cellWidth + bucketPadding, row * cellHeight, bucketWidth, bucketHeight);
+                buckets[row][col] = createNode(graph, bucketLayout, bucketStyle);
+                //int[] value = grid.getCellValue(row, col);
+                updateBucketValue(buckets[row][col], grid.getBucket(row,col));
+                //updateCellValue(cells[row][col], range);
+//                String bucketValues = String.join(", ", grid.getBucket(row, col).stream().map(Object::toString).collect(Collectors.toList()));
+//                graph.addLabel(cells[row][col], bucketValues);
+                graph.createEdge(cells[row][col], buckets[row][col], new PolylineEdgeStyle());
             }
-            int bucketValue = backendGrid.getBucketValue(row);
-            buckets[row] = createNode(graph, new RectD(numCols * cellWidth + bucketPadding, row * (bucketHeight + bucketPadding), bucketWidth, bucketHeight), bucketStyle);
-            updateBucketValue(buckets[row], bucketValue);
+//            int bucketValue = grid.getBucketValue(row);
+//            buckets[row] = createNode(graph, new RectD(numCols * cellWidth + bucketPadding, row * (bucketHeight + bucketPadding), bucketWidth, bucketHeight), bucketStyle);
+//            updateBucketValue(buckets[row], bucketValue);
         }
         createEdges(graph, cells, buckets);
         graphComponent.fitGraphBounds();
     }
 
-    private void updateBucketValue(INode bucketNode, int value) {
-        IGraph graph = graphComponent.getGraph();
-        graph.addLabel(bucketNode, String.valueOf(value));
+    private String formatRangeLabel(int[] range) {
+        return range[0] + " - " + range[1];
     }
+
+    private void updateBucketValue(INode bucketNode, List<Integer> values) {
+        IGraph graph = graphComponent.getGraph();
+        String bucketText = values.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        graph.addLabel(bucketNode, bucketText);
+    }
+
 
 
     private void setupStyles(ShapeNodeStyle cellStyle, ShapeNodeStyle bucketStyle) {
@@ -78,19 +98,19 @@ public class GridGUI extends JPanel {
         return node;
     }
 
-    private void updateCellValue(INode cellNode, int value) {
+    private void updateCellValue(INode cellNode, int[] value) {
         IGraph graph = graphComponent.getGraph();
-        graph.addLabel(cellNode, String.valueOf(value));
+        String range = formatRangeLabel(value);
+        graph.addLabel(cellNode, range);
     }
 
-    private void createEdges(IGraph graph, INode[][] cells, INode[] buckets) {
+    private void createEdges(IGraph graph, INode[][] cells, INode[][] buckets) {
         PolylineEdgeStyle edgeStyle = new PolylineEdgeStyle();
         edgeStyle.setPen(new Pen(Color.BLACK, 2));
         edgeStyle.setTargetArrow(new Arrow(ArrowType.DEFAULT, Color.BLACK));
-
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
-                graph.createEdge(cells[row][col], buckets[row], edgeStyle);
+                graph.createEdge(cells[row][col], buckets[row][col], edgeStyle);
             }
         }
     }
@@ -100,6 +120,10 @@ public class GridGUI extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Grid grid = new Grid(10, 2);
         grid.initializeBuckets(10, 2);
+        grid.setCellRange(0, 0, new int[] {1, 5});
+        grid.setCellRange(0, 1, new int[] {6, 10});
+        grid.setCellRange(1, 0, new int[] {11, 15});
+        grid.setCellRange(1, 1, new int[] {16, 20});
         grid.addToBucket(0, 0, 1);
         grid.addToBucket(0, 1, 2);
         grid.addToBucket(1, 0, 3);

@@ -164,7 +164,7 @@ public class MainApp extends JPanel {
 
 
     private void createIndexFromTable(String sql) {
-        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)\\((\\w+)(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)\\((\\w+)(?:,\\s*(\\w+))?(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(sql);
         if (matcher.find()) {
             String indexName = matcher.group(1).trim();
@@ -172,6 +172,7 @@ public class MainApp extends JPanel {
             String  Type = matcher.group(3).trim();
             String firstColumnName = matcher.group(4).trim();
             String secondColumnName = (matcher.groupCount() > 4 && matcher.group(5) != null) ? matcher.group(5).trim() : null;
+            String thirdColumnName = (matcher.groupCount()>5 && matcher.group(6) != null) ? matcher.group(6).trim() : null;
 
 
             switch (Type.toLowerCase()) {
@@ -204,9 +205,8 @@ public class MainApp extends JPanel {
                     visualizeColumnBitmap(tableName, firstColumnName);
                     break;
                 case "grid":
-                    //todo
                     System.out.println("Creating Grid Index");
-                    createGridIndex(tableName, firstColumnName, secondColumnName);
+                    createGridIndex(tableName, firstColumnName, secondColumnName,thirdColumnName);
                     break;
                 case "extensible_hashtable":
                     //todo
@@ -273,20 +273,21 @@ public class MainApp extends JPanel {
         });
     }
 
-
-
     private void createExtensibleHashTableIndex(String tableName, String firstColumnName) {
     }
 
-    private void createGridIndex(String tableName, String firstColumnName, String secondColumnName) {
+    private void createGridIndex(String tableName, String firstColumnName, String secondColumnName, String thirdColumnName) {
         try {
             Table table = database.getTable(tableName);
             int rows = table.getRows().size();
             int columns = table.getColumns().size();
             Grid gridIndex = new Grid(rows, columns);
+            List<int[]> ranges = promptForRanges(columns);
+
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
                     Object value = table.getValueAt(i, j);
+                    gridIndex.setCellRange(i, j, ranges.get(j));
                     try {
                         int intValue = Integer.parseInt(value.toString().replace("'", "").trim());
                         gridIndex.addToBucket(i, j, intValue);
@@ -304,6 +305,18 @@ public class MainApp extends JPanel {
         }
     }
 
+    private List<int[]> promptForRanges(int columns) {
+        List<int[]> ranges = new ArrayList<>();
+        for (int i = 0; i < columns; i++) {
+            String range = JOptionPane.showInputDialog(this, "Enter range for column " + (i + 1) + " (format: min,max):");
+            String[] parts = range.split(",");
+            int min = Integer.parseInt(parts[0].trim());
+            int max = Integer.parseInt(parts[1].trim());
+            ranges.add(new int[]{min, max});
+        }
+        return ranges;
+    }
+
     private void visualizeGridIndex(Grid gridIndex) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
@@ -313,7 +326,6 @@ public class MainApp extends JPanel {
             treePanel.repaint();
         });
     }
-
 
     private void visualizeColumnBitmap(String tableName, String columnName) {
         try {

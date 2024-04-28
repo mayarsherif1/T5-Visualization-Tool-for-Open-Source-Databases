@@ -6,13 +6,13 @@ import java.util.List;
 public class Grid {
     private int rows;
     private int columns;
-    private List<List<Integer>> grid;
+    private List<List<int[]>> grid;
     private List<List<List<Integer>>> buckets;
 
     public Grid(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
-        this.grid = new ArrayList<>();
+        this.grid = new ArrayList<>(rows);
         this.buckets = new ArrayList<>();
         initialize();
         initializeBuckets(rows, columns);
@@ -20,9 +20,9 @@ public class Grid {
 
     public void initialize() {
         for (int i = 0; i < rows; i++) {
-            List<Integer> row = new ArrayList<>();
+            List<int[]> row = new ArrayList<>(columns);
             for (int j = 0; j < columns; j++) {
-                row.add(0);
+                row.add(new int[]{0,0});
             }
             grid.add(row);
         }
@@ -39,20 +39,20 @@ public class Grid {
         }
     }
 
-    public void updateCell(int row, int column, int value) {
-        if (isValidCell(row, column)) {
-            grid.get(row).set(column, value);
-        } else {
-            System.out.println("Invalid cell coordinates.");
-        }
-    }
+//    public void updateCell(int row, int column, int value) {
+//        if (isValidCell(row, column)) {
+//            grid.get(row).set(column, value);
+//        } else {
+//            System.out.println("Invalid cell coordinates.");
+//        }
+//    }
 
-    public int getCellValue(int row, int column) {
+    public int[] getCellValue(int row, int column) {
         if (isValidCell(row, column)) {
             return grid.get(row).get(column);
         } else {
             System.out.println("Invalid cell coordinates.");
-            return -1;
+            return new int[]{-1,-1};
         }
     }
 
@@ -94,13 +94,29 @@ public class Grid {
     public int getBucketsSize() {
         return rows * columns;
     }
-    public int getBucketValue(int row) {
-        int sum = 0;
-        for (List<Integer> bucketRow : buckets.get(row)) {
-            for (Integer value : bucketRow) {
+    public int getBucketValue(int row, int col) {
+        if (isValidCell(row, col)) {
+            int sum = 0;
+            List<Integer> bucket = buckets.get(row).get(col);
+            for (Integer value : bucket) {
                 sum += value;
             }
+            return sum;
+        } else {
+            System.out.println("Invalid bucket coordinates.");
+            return -1;
         }
-        return sum;
     }
+
+
+    public void setCellRange(int row, int col, int[] range) {
+        if (row >= 0 && row < rows && col >= 0 && col < columns) {
+            grid.get(row).set(col, range);
+        }
+    }
+
+    public int[] getCellRange(int row, int col) {
+        return grid.get(row).get(col);
+    }
+
 }
