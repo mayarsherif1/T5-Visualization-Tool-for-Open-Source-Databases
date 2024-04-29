@@ -143,10 +143,13 @@ public class MainApp extends JPanel {
                     insertIntoTable(sql);
                 } else if (sql.toLowerCase().startsWith("create index")) {
                     System.out.println("create index sql panel");
-                    createIndexFromTable(sql);
+                    try {
+                        createIndexFromTable(sql);
+                    } catch (TableNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 } else {
                     ParseTree parseTree = processSQL(sql);
-                    //todo setParseTree()
                     treePanel.repaint();
                 }
             }
@@ -164,7 +167,7 @@ public class MainApp extends JPanel {
 
 
 
-    private void createIndexFromTable(String sql) {
+    private void createIndexFromTable(String sql) throws TableNotFoundException {
         Pattern pattern = Pattern.compile("CREATE INDEX (\\w+) ON (\\w+) USING (\\w+)\\((\\w+)(?:,\\s*(\\w+))?(?:,\\s*(\\w+))?\\);", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(sql);
         if (matcher.find()) {
@@ -220,6 +223,7 @@ public class MainApp extends JPanel {
                     System.out.println("Unsupported tree type specified.");
                     break;
             }
+            updateTableVis(tableName);
         } else {
             System.out.println("Invalid SQL syntax for creating index.");
         }
@@ -490,13 +494,25 @@ public class MainApp extends JPanel {
         int rows = getRows();
         brinIndex = new BrinIndex();
         List<String> data = database.getDataFromTable(tableName, firstColumnName);
+        if (!data.isEmpty()) {
+            System.out.println("First few data elements: " + data.subList(0, Math.min(5, data.size())));
+        }
+
         for (int i = 0; i < pages; i++) {
-            int Index = i * rows;
-            int toIndex = Math.min((i + 1) * rows, data.size());
-            List<String> pageData = data.subList(Index, toIndex);
-            int min = Integer.parseInt(Collections.min(pageData).replace("'", "").trim());
-            int max = Integer.parseInt(Collections.max(pageData).replace("'", "").trim());
-            brinIndex.addBlock(new BrinBlock(min, max));
+            int startIndex = i * rows;
+            int endIndex = Math.min((i + 1) * rows, data.size());
+            if (startIndex< endIndex){
+                List<String> pageData = data.subList(startIndex, endIndex);
+                try{
+                    int min = Integer.parseInt(Collections.min(pageData).replace("'", "").trim());
+                    int max = Integer.parseInt(Collections.max(pageData).replace("'", "").trim());
+                    brinIndex.addBlock(new BrinBlock(min, max));
+                }
+                catch (NumberFormatException e){
+                    System.err.println("Error processing numbers: " + e.getMessage());
+
+                }
+            }
         }
         visualizeBrinIndex();
     }
@@ -635,7 +651,7 @@ public class MainApp extends JPanel {
                     List<Column> columns = parseColumns(columnsPart);
                     System.out.println("Columns: " + columns);
                     database.createTable(tableName, columns);
-                    updateTableVis(tableName, getPages(), getRows());
+                    updateTableVis(tableName);
                 } else {
                     JOptionPane.showMessageDialog(this, "Table name not found in the command.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -660,8 +676,8 @@ public class MainApp extends JPanel {
         return columns;
     }
 
-    public void updateTableVis(String tableName,int pages,int rows) throws TableNotFoundException {
-        displayPages(tableName,pages,rows);
+    public void updateTableVis(String tableName) throws TableNotFoundException {
+        displayPages(tableName,getPages(),getRows());
         if (tables.containsKey(tableName)){
             JScrollPane scrollPane = (JScrollPane) tables.get(tableName);
             JTable table = (JTable) scrollPane.getViewport().getView();
@@ -674,11 +690,9 @@ public class MainApp extends JPanel {
             for (Column column : database.getTable(tableName).getColumns()) {
                 model.addColumn(column.getName());
             }
-
             JTable table = new JTable(model);
             JScrollPane scrollPane = new JScrollPane(table);
             scrollPane.setBorder(BorderFactory.createTitledBorder(String.format("%s: %d pages, %d rows", tableName, pages, rows)));
-
             tables.put(tableName, scrollPane);
             tablesPanel.add(scrollPane);
         }
@@ -786,7 +800,7 @@ public class MainApp extends JPanel {
                         DefaultTableModel model = (DefaultTableModel) table.getModel();
                         model.addRow(finalValues.toArray());
                         //addRowToTable(tableName, finalValues);
-                        updateTableVis(tableName, getPages(), getRows());
+                        updateTableVis(tableName);
                         table.revalidate();
                         table.repaint();
                     }

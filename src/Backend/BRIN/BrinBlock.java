@@ -15,12 +15,13 @@ public class BrinBlock {
     }
 
     public void insert(int value) {
+        System.out.println("Inserting value: " + value);
         if (value < min) min = value;
         if (value > max) max = value;
-        // Determine if the value should spawn a new child or merge into an existing one
         boolean merged = false;
         for (BrinBlock child : children) {
             if (child.fits(value) || child.isAdjacent(value)) {
+                System.out.println("Merging value " + value + " into child block " + child);
                 child.insert(value);
                 merged = true;
                 break;
@@ -28,16 +29,18 @@ public class BrinBlock {
         }
         if (!merged) {
             children.add(new BrinBlock(value, value));
+            System.out.println("Created new child block for value: " + value);
         }
         mergeChildrenIfNeeded();
     }
 
     private void mergeChildrenIfNeeded() {
-        Collections.sort(children, Comparator.comparingInt(a -> a.min));
+        Collections.sort(children, Comparator.comparingInt(BrinBlock::getMin));
         List<BrinBlock> merged = new ArrayList<>();
         BrinBlock prev = null;
         for (BrinBlock curr : children) {
             if (prev != null && (prev.max + 1 >= curr.min)) {
+                System.out.println("Merging blocks " + prev + " and " + curr);
                 prev.max = Math.max(prev.max, curr.max);
             } else {
                 merged.add(curr);

@@ -21,6 +21,7 @@ public class BrinLevel {
     }
 
     private void mergeAdjacentBlocks() {
+        System.out.println("Merging blocks. Initial count: " + blocks.size());
         blocks.sort(Comparator.comparingInt(BrinBlock::getMin));
         List<BrinBlock> mergedBlocks = new ArrayList<>();
         BrinBlock currentBlock = null;
@@ -29,11 +30,12 @@ public class BrinLevel {
             if (currentBlock == null || !currentBlock.canMergeWith(block)) {
                 currentBlock = block;
                 mergedBlocks.add(currentBlock);
+                System.out.println("Adding new block to merged list: [" + currentBlock.getMin() + ", " + currentBlock.getMax() + "]");
             } else {
                 currentBlock.mergeWith(block);
             }
         }
-
+        System.out.println("Merged blocks count: " + mergedBlocks.size());
         blocks = mergedBlocks;
     }
 }

@@ -17,8 +17,12 @@ public class BrinIndex {
     }
 
     private void insertIntoLevel(int value, int levelIndex) {
+        System.out.println("Inserting value " + value + " at level " + (levelIndex + 1));
+
         if (levelIndex >= levels.size()) {
             levels.add(new BrinLevel());
+            System.out.println("Added new level due to overflow");
+
         }
 
         BrinLevel level = levels.get(levelIndex);
@@ -32,6 +36,7 @@ public class BrinIndex {
         }
 
         if (insertedBlock == null) {
+            System.out.println("Creating new block for value " + value);
             level.addBlock(new BrinBlock(value, value));
         } else {
             if (levelIndex + 1 < levels.size()) {
@@ -62,54 +67,5 @@ public class BrinIndex {
     public List<BrinLevel> getLevels() {
         return levels;
     }
-//
-//    public void insertValue(int value) {
-//        BrinBlock insertedBlock = null;
-//        for (BrinBlock block : blocks) {
-//            if (block.fits(value)|| block.isAdjacent(value)) {
-//                block.updateRange(value);
-//                insertedBlock = block;
-//                break;
-//            }
-//        }
-//        if (insertedBlock == null) {
-//            blocks.add(new BrinBlock(value, value));
-//        }
-//        mergeAdjacentBlocks();
-//    }
-//
-//    private void mergeAdjacentBlocks() {
-//        blocks.sort(Comparator.comparingInt(BrinBlock::getMin));
-//        List<BrinBlock> mergedBlocks = new ArrayList<>();
-//        BrinBlock currentBlock = null;
-//        for (BrinBlock block : blocks) {
-//            if (currentBlock == null || !currentBlock.canMergeWith(block)) {
-//                currentBlock = block;
-//                mergedBlocks.add(currentBlock);
-//            } else {
-//                currentBlock.mergeWith(block);
-//            }
-//        }
-//        blocks.clear();
-//        blocks.addAll(mergedBlocks);
-//
-//    }
-//
-//
-//    public List<BrinBlock> getBlocks() {
-//        return new ArrayList<>(blocks);
-//    }
-//    public void printIndex() {
-//        System.out.println("BRIN Index Structure:");
-//        for (BrinBlock block : blocks) {
-//            System.out.printf("Block Range: [%d, %d]%n", block.getMin(), block.getMax());
-//        }
-//    }
-//
-//    public void bulkInsert(List<Integer> values) {
-//        for (int value : values) {
-//            insertValue(value);
-//        }
-//    }
 
 }

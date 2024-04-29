@@ -46,5 +46,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="apache-calcite-1.36" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="jetbrains.kotlin.gradle.plugin" level="project" />
   </component>
 </module>
