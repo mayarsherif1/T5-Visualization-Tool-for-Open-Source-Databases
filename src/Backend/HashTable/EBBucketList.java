@@ -2,7 +2,7 @@ package Backend.HashTable;
 
 import java.util.ArrayList;
 
-public class EBBucketList implements EBPartitionedHashIndex{
+public class EBBucketList{
 
     private final ArrayList<EBBucket> buckets;
     private EBBucket currentBucket;
@@ -30,7 +30,6 @@ public class EBBucketList implements EBPartitionedHashIndex{
         return this.buckets.size();
     }
 
-    @Override
     public boolean addIndex(EBIndex index) {
         if (isFull()){
             return false;
@@ -43,7 +42,6 @@ public class EBBucketList implements EBPartitionedHashIndex{
         return this.currentBucket.addIndex(index);
     }
 
-    @Override
     public void updateIndex(EBIndex oldIndex, EBIndex newIndex) {
         for (EBBucket ebBucket : buckets) {
             if (ebBucket.contains(oldIndex)) {
@@ -53,7 +51,6 @@ public class EBBucketList implements EBPartitionedHashIndex{
         }
     }
 
-    @Override
     public ArrayList<EBIndex> getIndex(EBIndex index) {
         ArrayList<EBIndex> indexList = new ArrayList<EBIndex>();
         for (EBBucket ebBucket : buckets) {
@@ -70,8 +67,6 @@ public class EBBucketList implements EBPartitionedHashIndex{
         return indexList;
 
     }
-
-    @Override
     public void deleteIndex(EBIndex index) {
         for (EBBucket ebBucket : buckets) {
             if (ebBucket.contains(index)) {
@@ -88,4 +83,7 @@ public class EBBucketList implements EBPartitionedHashIndex{
         return buckets.stream().allMatch(EBBucket::isFull);
     }
 
+    public void clear() {
+        this.buckets.clear();
+    }
 }

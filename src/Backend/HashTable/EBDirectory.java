@@ -2,7 +2,7 @@ package Backend.HashTable;
 
 import java.util.*;
 
-public class EBDirectory implements EBPartitionedHashIndex{
+public class EBDirectory{
 
     private EBBucketList[] bucketListArray;
     private int bitsAssigned;
@@ -55,13 +55,15 @@ public class EBDirectory implements EBPartitionedHashIndex{
         String[] values = index.getValues();
         StringBuilder binaryBuilder = new StringBuilder();
         for (String value : values) {
+            if (value == null) {
+                throw new IllegalArgumentException("Value within the index cannot be null.");
+            }
             String binaryHash = binaryHashCode(value);
             System.out.println("Binary hash code for value " + value + ": " + binaryHash);
             binaryBuilder.append(binaryHash);
         }
         String binary = binaryBuilder.toString();
         System.out.println("Concatenated binary string: " + binary);
-
         int entryNumber = Integer.parseInt(binary, 2);
         System.out.println("Entry number (bucket number): " + entryNumber);
 
@@ -81,6 +83,8 @@ public class EBDirectory implements EBPartitionedHashIndex{
 
         return Integer.parseInt(binary, 2);
     }
+
+
     private boolean areEquivalentHashes(EBIndex oldIndex, EBIndex newIndex) {
         String[] oldValues = oldIndex.getValues();
         String[] newValues = newIndex.getValues();
@@ -103,7 +107,6 @@ public class EBDirectory implements EBPartitionedHashIndex{
     }
 
 
-    @Override
     public boolean addIndex(EBIndex index) {
         int entryNumber = getEntryNumber(index);
         System.out.println("Adding index to bucket number: " + entryNumber + ", Index: " + Arrays.toString(index.getValues()));
@@ -120,7 +123,6 @@ public class EBDirectory implements EBPartitionedHashIndex{
         return false;
     }
 
-    @Override
     public void updateIndex(EBIndex oldIndex, EBIndex newIndex) {
         if (identicalIndexes(oldIndex, newIndex)) {
             return;
@@ -149,7 +151,6 @@ public class EBDirectory implements EBPartitionedHashIndex{
 
     }
 
-    @Override
     public ArrayList<EBIndex> getIndex(EBIndex index) {
         ArrayList<EBIndex> indexList = new ArrayList<>();
         int entryNumber = getEntryNumber(index);
@@ -172,7 +173,6 @@ public class EBDirectory implements EBPartitionedHashIndex{
         return indexList;
     }
 
-    @Override
     public void deleteIndex(EBIndex index) {
         int entryNumber = getEntryNumber(index);
         if (isUniqueEntry(index)) {
@@ -241,7 +241,7 @@ public class EBDirectory implements EBPartitionedHashIndex{
         redistributeEntries(originalBucket, newBucket, bucketIndex, newBucketIndex, localDepth + 1);
     }
 
-    private void resizeDirectory() {
+    void resizeDirectory() {
         int newLength = bucketListArray.length * 2;
         EBBucketList[] newDirectory = new EBBucketList[newLength];
         for (int i = 0; i < bucketListArray.length; i++) {
@@ -280,7 +280,12 @@ public class EBDirectory implements EBPartitionedHashIndex{
         return hash & globalDepthMask;
     }
 
+    public void clear() {
+        for (EBBucketList bucketList : bucketListArray) {
+            if (bucketList != null) {
+                bucketList.clear();
+            }
+        }
 
-
-
+    }
 }

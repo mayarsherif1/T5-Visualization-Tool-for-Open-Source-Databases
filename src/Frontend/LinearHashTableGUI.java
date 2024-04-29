@@ -13,11 +13,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class LinearHashTableVisualizer extends JFrame {
+public class LinearHashTableGUI extends JFrame {
     private LinearHashingIndex hashingIndex;
     private GraphComponent graphComponent;
 
-    public LinearHashTableVisualizer(LinearHashingIndex hashingIndex) {
+    public LinearHashTableGUI(LinearHashingIndex hashingIndex) {
         this.hashingIndex = hashingIndex;
         initializeUI();
     }
@@ -110,7 +110,7 @@ public class LinearHashTableVisualizer extends JFrame {
 
         //hashingIndex.debugRehash();
 
-        LinearHashTableVisualizer visualizer = new LinearHashTableVisualizer(hashingIndex);
+        LinearHashTableGUI visualizer = new LinearHashTableGUI(hashingIndex);
         visualizer.visualize();
         visualizer.updateGraph();
     }

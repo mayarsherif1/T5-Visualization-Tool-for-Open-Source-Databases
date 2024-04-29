@@ -3,8 +3,7 @@ package Backend.HashTable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class EBBucket implements EBPartitionedHashIndex{
-
+public class EBBucket{
     private final int pageSize;
     private int freeSlot;
     private final EBIndex[] indexes;
@@ -46,7 +45,6 @@ public class EBBucket implements EBPartitionedHashIndex{
     }
 
 
-    @Override
     public boolean addIndex(EBIndex index) {
         if(isFull()){
             return false;
@@ -54,8 +52,6 @@ public class EBBucket implements EBPartitionedHashIndex{
         this.indexes[freeSlot++] = index;
         return true;
     }
-
-    @Override
     public void updateIndex(EBIndex oldIndex, EBIndex newIndex) {
         int hashCode = oldIndex.hashCode();
         for (int i = 0; i < this.freeSlot; ++i) {
@@ -67,7 +63,6 @@ public class EBBucket implements EBPartitionedHashIndex{
         }
     }
 
-    @Override
     public ArrayList<EBIndex> getIndex(EBIndex index) {
         ArrayList<EBIndex> indexList = new ArrayList<EBIndex>();
         int hashCode = index.hashCode();
@@ -83,7 +78,6 @@ public class EBBucket implements EBPartitionedHashIndex{
         return new ArrayList<>(Arrays.asList(indexes));
     }
 
-    @Override
     public void deleteIndex(EBIndex index) {
         int hashCode = index.hashCode();
         for (int i = 0; i < this.freeSlot; ++i) {

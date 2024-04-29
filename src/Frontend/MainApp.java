@@ -8,6 +8,7 @@ import Backend.Database.Database;
 import Backend.Database.Table;
 import Backend.Exception.TableNotFoundException;
 import Backend.GRID.Grid;
+import Backend.HashTable.ExtensibleHashTable;
 import Backend.HashTable.LinearHashingIndex;
 import Backend.KDTree.KDTree;
 import Backend.NewSQLListener;
@@ -174,7 +175,6 @@ public class MainApp extends JPanel {
             String secondColumnName = (matcher.groupCount() > 4 && matcher.group(5) != null) ? matcher.group(5).trim() : null;
             String thirdColumnName = (matcher.groupCount()>5 && matcher.group(6) != null) ? matcher.group(6).trim() : null;
 
-
             switch (Type.toLowerCase()) {
                 case "b_tree":
                     System.out.println("createBPlusTree");
@@ -209,7 +209,6 @@ public class MainApp extends JPanel {
                     createGridIndex(tableName, firstColumnName, secondColumnName,thirdColumnName);
                     break;
                 case "extensible_hashtable":
-                    //todo
                     System.out.println("Creating Extensible Hash Table Index");
                     createExtensibleHashTableIndex(tableName, firstColumnName);
                     break;
@@ -265,7 +264,7 @@ public class MainApp extends JPanel {
     private void visualizeHashTable(LinearHashingIndex LinearhashTable) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            LinearHashTableVisualizer gridIndexGUI = new LinearHashTableVisualizer(LinearhashTable);
+            LinearHashTableGUI gridIndexGUI = new LinearHashTableGUI(LinearhashTable);
             treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
@@ -274,6 +273,36 @@ public class MainApp extends JPanel {
     }
 
     private void createExtensibleHashTableIndex(String tableName, String firstColumnName) {
+        try {
+            Table table = database.getTable(tableName);
+            List<String> columnData = table.getColumnData(firstColumnName);
+            int rows = getRows();
+            if (columnData.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No data found in the column: " + firstColumnName, "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            ExtensibleHashTable hashTable = new ExtensibleHashTable(rows);
+            for (String key : columnData) {
+                if (key != null && !key.isEmpty()) {
+                    hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
+                }
+            }
+            visualizeExtensibleHashTable(hashTable);
+        } catch (TableNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void visualizeExtensibleHashTable(ExtensibleHashTable hashTable) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            EHashTableGUI gridIndexGUI = new EHashTableGUI(hashTable);
+            treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
     }
 
     private void createGridIndex(String tableName, String firstColumnName, String secondColumnName, String thirdColumnName) {

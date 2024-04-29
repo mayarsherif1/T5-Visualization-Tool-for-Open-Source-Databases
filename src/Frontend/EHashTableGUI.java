@@ -1,8 +1,6 @@
 package Frontend;
 
-import Backend.HashTable.EBDirectory;
-import Backend.HashTable.EBIndex;
-import com.yworks.yfiles.geometry.PointD;
+import Backend.HashTable.ExtensibleHashTable;
 import com.yworks.yfiles.geometry.RectD;
 import com.yworks.yfiles.graph.IGraph;
 import com.yworks.yfiles.graph.INode;
@@ -11,188 +9,87 @@ import com.yworks.yfiles.view.GraphComponent;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.Arrays;
+import java.util.List;
 
-public class EHashTableGUI {
+public class EHashTableGUI extends JFrame{
 
-    private JFrame frame;
+    private ExtensibleHashTable hashTable;
     private GraphComponent graphComponent;
-    private JTextField inputField, capacityField;
-    private JButton addButton, initButton;
     private IGraph graph;
-    private INode[] bucketNodes;
-    private EBDirectory directory;
 
-    public EHashTableGUI() {
+    public EHashTableGUI(ExtensibleHashTable hashTable) {
+        this.hashTable = hashTable;
         initializeUI();
     }
 
     private void initializeUI() {
-        frame = new JFrame("Hashtable Visualization");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        setTitle("HashTable Visualization");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
         graphComponent = new GraphComponent();
-        frame.add(graphComponent, BorderLayout.CENTER);
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        capacityField = new JTextField(5);
-        initButton = new JButton("Set Capacity and Initialize");
-        initButton.addActionListener(this::initButtonClicked);
-
-        inputField = new JTextField(10);
-        inputField.setEnabled(false);
-        addButton = new JButton("Add");
-        addButton.setEnabled(false);
-        addButton.addActionListener(this::addButtonClicked);
-        inputPanel.add(new JLabel("Bucket Capacity:"));
-        inputPanel.add(capacityField);
-        inputPanel.add(initButton);
-        inputPanel.add(new JLabel("Add Value:"));
-        inputPanel.add(inputField);
-        inputPanel.add(addButton);
-        frame.add(inputPanel, BorderLayout.SOUTH);
-        frame.setSize(800, 600);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
-
-    private void initButtonClicked(ActionEvent e) {
-        try {
-            String input = capacityField.getText().trim();
-            if (!input.isEmpty()) {
-                int capacity = Integer.parseInt(input);
-                directory = new EBDirectory(1,capacity);
-                initializeGraph();
-                inputField.setEnabled(true);
-                addButton.setEnabled(true);
-                capacityField.setEnabled(false);
-                initButton.setEnabled(false);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Please enter a valid capacity.", "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(frame, "Invalid number format. Please enter a valid integer for capacity.", "Number Format Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void addButtonClicked(ActionEvent e) {
-        String input = inputField.getText().trim();
-        if (!input.isEmpty()) {
-            addInputToHashTable(input);
-            inputField.setText("");
-        } else {
-            JOptionPane.showMessageDialog(frame, "Please enter some text to add.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        }
+        getContentPane().add(graphComponent);
+        initializeGraph();
     }
 
     private void initializeGraph() {
         graph = graphComponent.getGraph();
+        graph.clear();
         ShapeNodeStyle nodeStyle = new ShapeNodeStyle();
         nodeStyle.setPaint(Color.WHITE);
         graph.getNodeDefaults().setStyle(nodeStyle);
         updateGraphVisualization();
-
-//        int totalNumberOfBuckets = directory.length();
-//        int digits = calculateBinaryDigits(totalNumberOfBuckets);
-//
-////        String[] buckets = {"000", "001", "010", "011", "100", "101", "110", "111"};
-//        bucketNodes = new INode[totalNumberOfBuckets];
-//
-//        for (int i = 0; i < totalNumberOfBuckets; i++) {
-//            Point2D location = new Point2D.Double(100, i * 100);
-//            bucketNodes[i] = graph.createNode(PointD.fromPoint2D(location));
-//            String bucketLabel = formatBucketLabel(i, digits);
-//            graph.addLabel(bucketNodes[i], bucketLabel);
-//        }
-    }
-
-
-    private void addInputToHashTable(String input) {
-        String[] values = new String[]{input};
-        EBIndex newIndex = new EBIndex(values);
-        System.out.println("Adding index with values: " + Arrays.toString(values));
-        boolean bucketFull = directory.addIndex(newIndex);
-        if (bucketFull) {
-            int bucketIndex = directory.getBucketIndex(newIndex);
-            handleBucketSplit(bucketIndex);
-        }
-        updateGraphVisualization();
-    }
-    private void handleBucketSplit(int bucketIndex) {
-        directory.splitBucket(bucketIndex);
-        System.out.println("Bucket " + bucketIndex + " split due to overflow.");
     }
 
     private void updateGraphVisualization() {
-        graph.clear();
-        int yPosition = 100;
-        int xPositionIncrement = 250;
-        int yEntryOffset = 50;
-        int xEntryIncrement = 30;
+        List<List<String>> buckets = hashTable.getBuckets();
+        int xPosition = 0;
 
-        int totalNumberOfBuckets = directory.length();
-        int digits = directory.getGlobalDepth();
-        bucketNodes = new INode[totalNumberOfBuckets];
+        for (int i = 0; i < buckets.size(); i++) {
+            RectD bucketRect = new RectD(xPosition, 100, 100, 50);
+            INode bucketNode = graph.createNode(bucketRect);
+            graph.addLabel(bucketNode, "Bucket " + i + ": " + buckets.get(i).size() + " items");
 
-        double nodeWidth = 50;
-        double nodeHeight = 30;
-
-        for (int i = 0; i < totalNumberOfBuckets; i++) {
-            double xPos = i * xPositionIncrement;
-            PointD bucketPosition = new PointD(xPos, yPosition);
-            //PointD bucketPosition = new PointD(i * xPositionIncrement, yPosition);
-            //bucketNodes[i] = graph.createNode(bucketPosition);
-            bucketNodes[i] = graph.createNode(new RectD(bucketPosition.getX(), bucketPosition.getY(), nodeWidth, nodeHeight));
-
-            String bucketLabel = formatBucketLabel(i, digits);
-            graph.addLabel(bucketNodes[i], bucketLabel);
-            System.out.println("Visualizing Bucket: " + bucketLabel);
-            Iterable<EBIndex> indexes = directory.getIndexesForBucket(i);
-            int entryIndex = 0;
-
-            for (EBIndex index : indexes) {
-                if (index != null && !index.isDeleted()) {
-                    PointD entryPosition = new PointD(bucketPosition.getX() + entryIndex * xEntryIncrement, bucketPosition.getY() + yEntryOffset);
-                    INode entryNode = graph.createNode(entryPosition);
-                    graph.addLabel(entryNode, index.toString());
-                    graph.createEdge(bucketNodes[i], entryNode);
-                    entryIndex++;
-                    System.out.println("Adding index to graph: " + index.toString());
-                }
+            int valueYPosition = 150;
+            for (String value : buckets.get(i)) {
+                RectD valueRect = new RectD(xPosition, valueYPosition, 100, 30);
+                INode valueNode = graph.createNode(valueRect);
+                graph.addLabel(valueNode, value);
+                graph.createEdge(bucketNode, valueNode);
+                valueYPosition += 40;
             }
+            xPosition += 110;
         }
+
         graphComponent.fitGraphBounds();
         graphComponent.updateUI();
     }
 
-    private int calculateBinaryDigitsForFilledBuckets() {
-        int filledBuckets = calculateFilledBuckets();
-        if(filledBuckets <= 0) {
-            return 1;
-        }
-        return (int) Math.ceil(Math.log(filledBuckets) /Math.log(2));
-    }
-
-    private int calculateFilledBuckets() {
-        return directory.getNumberOfFilledBuckets();
-    }
-
-
-    private int calculateBinaryDigits(int numberOfBuckets) {
-        return (int) Math.ceil(Math.log(numberOfBuckets) / Math.log(2));
-    }
-    private String formatBucketLabel(int bucketIndex, int totalDigits) {
-        String binaryString = Integer.toBinaryString(bucketIndex);
-        while (binaryString.length() < totalDigits) {
-            binaryString = "0" + binaryString;
-        }
-        return binaryString;
-    }
-
-
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(EHashTableGUI::new);
+        SwingUtilities.invokeLater(() -> {
+            ExtensibleHashTable hashTable = new ExtensibleHashTable(2);
+            hashTable.insert(0);
+            hashTable.insert(1);
+            hashTable.insert(2);
+            hashTable.insert(3);
+            hashTable.insert(4);
+            hashTable.insert(6);
+            hashTable.insert(8);
+
+            EHashTableGUI EHashTableGUI = new EHashTableGUI(hashTable);
+            EHashTableGUI.visualize();
+            EHashTableGUI.updateGraphVisualization();
+        });
+    }
+
+    private void visualize() {
+        updateGraphVisualization();
+        setVisible(true);
+    }
+
+    public GraphComponent getGraphComponent() {
+        return graphComponent;
     }
 }
