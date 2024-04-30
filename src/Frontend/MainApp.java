@@ -41,6 +41,8 @@ public class MainApp extends JPanel {
     private Map<String,JComponent> tables;
     private Database database;
     private BrinIndex brinIndex;
+    private Random random = new Random();
+
 
     public MainApp() {
         database= new Database();
@@ -132,6 +134,8 @@ public class MainApp extends JPanel {
     private void setSqlPanel() {
         JPanel sqlPanel = new JPanel();
         JButton submitButton = new JButton("Visualize");
+        JButton generateDataButton = new JButton("Generate Data");
+
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -149,14 +153,33 @@ public class MainApp extends JPanel {
                         throw new RuntimeException(ex);
                     }
                 } else {
-                    ParseTree parseTree = processSQL(sql);
-                    treePanel.repaint();
+                    visualizeRelationalAlgebraTree(sql);
+                }
+            }
+        });
+
+        generateDataButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String tableName = JOptionPane.showInputDialog(MainApp.this, "Enter the table name for data generation:");
+                String numRecordsString = JOptionPane.showInputDialog(MainApp.this, "Enter the number of records to generate:");
+                if (tableName != null && !tableName.isEmpty() && numRecordsString != null && !numRecordsString.isEmpty()) {
+                    try {
+                        int numRecords = Integer.parseInt(numRecordsString.trim());
+                        //generateAndInsertData(tableName, numRecords);
+                        updateTableVis(tableName);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(MainApp.this, "Please enter a valid number for the number of records.", "Error", JOptionPane.ERROR_MESSAGE);
+                    } catch (TableNotFoundException ex) {
+                        JOptionPane.showMessageDialog(MainApp.this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });
         sqlPanel.add(new JLabel("SQL:"));
         sqlPanel.add(sqlTestField);
         sqlPanel.add(submitButton);
+        //sqlPanel.add(generateDataButton);
         add(sqlPanel, BorderLayout.PAGE_START);
         updateVisual();
         refreshTablesPanel();
@@ -164,6 +187,55 @@ public class MainApp extends JPanel {
         tablesPanel.repaint();
     }
 
+    private void visualizeRelationalAlgebraTree(String sql) {
+        RelationalAlgebraTreeGUI algebraTree = new RelationalAlgebraTreeGUI(sql, database);
+        GraphComponent algebraGraph = algebraTree.toGraphComponent();
+        treePanel.setGraphComponent(algebraGraph);
+        treePanel.repaint();
+    }
+
+//    private void generateAndInsertData(String tableName, int numRecords) {
+//        try {
+//            Table table = database.getTable(tableName);
+//            List<Column> columns = table.getColumns();
+//            StringBuilder insertSQL;
+//
+//            for (int i = 0; i < numRecords; i++) {
+//                insertSQL = new StringBuilder("INSERT INTO " + tableName + " (");
+//                List<String> values = new ArrayList<>();
+//                insertSQL.append(String.join(", ", columns.stream().map(Column::getName).collect(Collectors.toList())));
+//                insertSQL.append(") VALUES (");
+//
+//                for (Column column : columns) {
+//                    switch (column.getType().toUpperCase()) {
+//                        case "INT":
+//                            values.add("'"+random.nextInt(1000)+"'");
+//                            break;
+//                        case "VARCHAR":
+//                            values.add("'" + generateRandomString(10) + "'");
+//                            break;
+//                        default:
+//                            values.add("NULL");
+//                            break;
+//                    }
+//                }
+//                insertSQL.append(String.join(", ", values));
+//                insertSQL.append(");");
+//                System.out.println(insertSQL);
+//                insertIntoTable(insertSQL.toString());
+//            }
+//        } catch (TableNotFoundException e) {
+//            JOptionPane.showMessageDialog(this, "Table " + tableName + " not found.", "Error", JOptionPane.ERROR_MESSAGE);
+//        }
+//    }
+//
+//    private String generateRandomString(int length) {
+//        return random.ints(48, 122)
+//                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+//                .limit(length)
+//                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+//                .toString();
+//    }
 
 
 
@@ -771,62 +843,114 @@ public class MainApp extends JPanel {
         }
         return model;
     }
-
     private void insertIntoTable(String sql) {
         Pattern insertPattern = Pattern.compile("INSERT INTO (\\w+) \\(([^)]+)\\) VALUES \\(([^)]+)\\)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = insertPattern.matcher(sql);
         if (matcher.find()) {
             String tableName = matcher.group(1);
-            String columnNames = matcher.group(2);
-            String valuesPart = matcher.group(3);
-            List<String> columns = Arrays.asList(columnNames.split(","));
-            List<String> values = Arrays.asList(valuesPart.split(","));
-            columns = columns.stream().map(String::trim).collect(Collectors.toList());
-            values = values.stream().map(String::trim).collect(Collectors.toList());
+            List<String> columnNames = Arrays.asList(matcher.group(2).split(",")).stream().map(String::trim).collect(Collectors.toList());
+            List<String> values = Arrays.asList(matcher.group(3).split(",")).stream().map(String::trim).collect(Collectors.toList());
 
-            List<String> finalColumns = columns;
-            List<String> finalValues = values;
-            System.out.println("Columns: " + finalColumns);
-            System.out.println("Values: " + finalValues);
+            try {
+                Table table = database.getTable(tableName);
+                List<Column> columns = table.getColumns();
+                List<String> formattedValues = new ArrayList<>();
 
-            SwingUtilities.invokeLater(() -> {
-                try {
-                    System.out.println("Inserting into table: " + tableName);
-                    System.out.println("Inserting columns: " + finalColumns);
-                    System.out.println("Inserting values: " + finalValues);
-                    database.insertIntoTable(tableName, finalColumns, finalValues);
-                    JTable table = findTableInUI(tableName);
-                    if (table != null) {
-                        DefaultTableModel model = (DefaultTableModel) table.getModel();
-                        model.addRow(finalValues.toArray());
-                        //addRowToTable(tableName, finalValues);
-                        updateTableVis(tableName);
-                        table.revalidate();
-                        table.repaint();
+                for (int i = 0; i < values.size(); i++) {
+                    Column column = columns.get(columnNames.indexOf(columnNames.get(i)));
+                    String value = values.get(i);
+                    switch (column.getType().toUpperCase()) {
+                        case "VARCHAR":
+                            formattedValues.add(value); // Assuming value is already in single quotes
+                            break;
+                        case "INT":
+                            formattedValues.add(value.replaceAll("'", "")); // Remove single quotes for integers
+                            break;
+                        default:
+                            formattedValues.add(value); // Add other types as needed
                     }
-                    else {
-                        JOptionPane.showMessageDialog(null, "Row did not insert.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                    //updatePageAfterInsert(tableName);
-                    JOptionPane.showMessageDialog(null, "Row inserted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                } catch (TableNotFoundException e) {
-                    JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Table Not Found", JOptionPane.ERROR_MESSAGE);
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
-            });
+                database.insertIntoTable(tableName, columnNames, formattedValues);
+
+                // Swing UI update on the EDT
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        updateTableVis(tableName);  // Update table visualization
+                    } catch (TableNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                JOptionPane.showMessageDialog(null, "Row inserted and UI updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (TableNotFoundException e) {
+                JOptionPane.showMessageDialog(null, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
             JOptionPane.showMessageDialog(this, "Invalid insert statement", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+
+//    private void insertIntoTable(String sql) {
+//        Pattern insertPattern = Pattern.compile("INSERT INTO (\\w+) \\(([^)]+)\\) VALUES \\(([^)]+)\\)", Pattern.CASE_INSENSITIVE);
+//        Matcher matcher = insertPattern.matcher(sql);
+//        if (matcher.find()) {
+//            String tableName = matcher.group(1);
+//            String columnNames = matcher.group(2);
+//            String valuesPart = matcher.group(3);
+//            System.out.println("Attempting to insert into table: " + tableName);
+//            List<String> columns = Arrays.asList(columnNames.split(","));
+//            List<String> values = Arrays.asList(valuesPart.split(","));
+//            columns = columns.stream().map(String::trim).collect(Collectors.toList());
+//            values = values.stream().map(String::trim).collect(Collectors.toList());
+//
+//            List<String> finalColumns = columns;
+//            List<String> finalValues = values;
+//            System.out.println("Columns: " + finalColumns);
+//            System.out.println("Values: " + finalValues);
+//
+//            SwingUtilities.invokeLater(() -> {
+//                try {
+//                    System.out.println("Inserting into table: " + tableName);
+//                    System.out.println("Inserting columns: " + finalColumns);
+//                    System.out.println("Inserting values: " + finalValues);
+//                    database.insertIntoTable(tableName, finalColumns, finalValues);
+//                    JTable table = findTableInUI(tableName);
+//                    if (table != null) {
+//                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                        model.addRow(finalValues.toArray());
+//                        //addRowToTable(tableName, finalValues);
+//                        updateTableVis(tableName);
+//                        table.revalidate();
+//                        table.repaint();
+//                    }
+//                    else {
+//                        JOptionPane.showMessageDialog(null, "Row did not insert.", "Error", JOptionPane.ERROR_MESSAGE);
+//                    }
+//                    //updatePageAfterInsert(tableName);
+//                    JOptionPane.showMessageDialog(null, "Row inserted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+//                } catch (TableNotFoundException e) {
+//                    JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Table Not Found", JOptionPane.ERROR_MESSAGE);
+//                } catch (Exception e) {
+//                    JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//                }
+//
+//            });
+//        } else {
+//            JOptionPane.showMessageDialog(this, "Invalid insert statement", "Error", JOptionPane.ERROR_MESSAGE);
+//        }
+//    }
 
     private JTable findTableInUI(String tableName) {
         for (Component comp : tablesPanel.getComponents()) {
             if (comp instanceof JScrollPane) {
                 JScrollPane scrollPane = (JScrollPane) comp;
                 JTable table = (JTable) scrollPane.getViewport().getView();
-                if (table.getName().equals(tableName)) {
+                if (table.getName() != null && tableName.equals(table.getName())) {
                     return table;
                 }
             }

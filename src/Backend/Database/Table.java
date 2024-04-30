@@ -1,5 +1,7 @@
 package Backend.Database;
 
+import org.jetbrains.kotlin.com.intellij.util.containers.hash.LinkedHashMap;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,6 @@ public class Table {
         this.name=name;
         this.columns = new ArrayList<>();
         this.rows=new ArrayList<>();
-
     }
 
     public String getName(){
@@ -38,7 +39,7 @@ public class Table {
         if (columnNames.size() != values.size()) {
             throw new IllegalArgumentException("Number of columns and values do not match.");
         }
-        Map<String, String> newRow = new HashMap<>();
+        Map<String, String> newRow = new LinkedHashMap<>();
         for (int i = 0; i < columnNames.size(); i++) {
             String columnName = columnNames.get(i);
             String value = values.get(i);

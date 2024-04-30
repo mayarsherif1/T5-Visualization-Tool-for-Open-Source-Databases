@@ -46,8 +46,81 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="apache-calcite-1.36" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="jetbrains.kotlin.gradle.plugin" level="project" />
+    <orderEntry type="library" name="gradle-8.7-all" level="project" />
+    <orderEntry type="library" name="gradle-8" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$USER_HOME$/Downloads/calcite" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/Downloads/calcite" />
+          <root url="file://$USER_HOME$/Downloads/calcite/arrow/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/arrow/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/babel/build/javacc/javaCCMain" />
+          <root url="file://$USER_HOME$/Downloads/calcite/babel/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/babel/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/cassandra/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/cassandra/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/build/generated/sources/version" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/build/javacc/javaCCMain" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/build/javacc/javaCCTest" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/src/main/version" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/core/src/test/resources" />
+          <root url="file://$USER_HOME$/Downloads/calcite/druid/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/druid/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/elasticsearch/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/elasticsearch/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/example/csv/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/example/csv/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/example/function/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/example/function/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/file/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/file/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/geode/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/geode/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/innodb/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/innodb/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/kafka/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/kafka/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/linq4j/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/linq4j/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/mongodb/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/mongodb/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/pig/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/pig/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/piglet/build/javacc/javaCCMain" />
+          <root url="file://$USER_HOME$/Downloads/calcite/piglet/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/piglet/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/plus/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/plus/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/redis/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/redis/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/server/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/server/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/spark/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/spark/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/splunk/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/splunk/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/testkit/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/testkit/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/calcite/ubenchmark/src/jmh/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/gradle-8.5-bin.zip!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
