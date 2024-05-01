@@ -33,17 +33,44 @@ public class RelationalAlgebraTreeGUI extends JFrame {
     }
 
     private RelationalAlgebraNode parseSQLToAlgebra(String sql) {
-        sql = sql.toLowerCase();
-        if (sql.contains("select") && sql.contains("from")) {
-            String[] parts = sql.split("from");
-            String[] projections = parts[0].split("select")[1].trim().split(",");
-            String tableName = parts[1].trim().split(" ")[0];
+        try {
+            if (!sql.toUpperCase().contains("SELECT") || !sql.toUpperCase().contains("FROM")) {
+                throw new IllegalArgumentException("Invalid SQL: SELECT or FROM clause missing.");
+            }
+
+            String[] parts = sql.split("(?i)FROM");
+            if (parts.length < 2 || parts[0].split("(?i)SELECT").length < 2) {
+                throw new IllegalArgumentException("Invalid SQL structure.");
+            }
+
+            String[] projections = parts[0].split("(?i)SELECT")[1].trim().split(",");
+            if (projections.length == 0) {
+                throw new IllegalArgumentException("No columns specified in SELECT clause.");
+            }
+
+            String tableAndConditions = parts[1].trim();
+            String[] tableParts = tableAndConditions.split("(?i)WHERE");
+            String tableName = tableParts[0].trim().split("\\s+")[0];
+            if (tableName.isEmpty()) {
+                throw new IllegalArgumentException("No table specified.");
+            }
+
+            String condition = tableParts.length > 1 ? tableParts[1].trim() : "TRUE";
 
             RelationalAlgebraNode tableNode = new TableNode(tableName, database);
-            return new ProjectionNode(List.of(projections), new SelectionNode("Example Condition", tableNode));
+            if (((TableNode)tableNode).getTable() == null) {
+                throw new IllegalArgumentException("Table '" + tableName + "' not found.");
+            }
+
+            SelectionNode selectionNode = new SelectionNode(condition, tableNode);
+            return new ProjectionNode(List.of(projections), selectionNode);
+        } catch (Exception e) {
+            System.err.println("Error parsing SQL: " + e.getMessage());
+            return null;  // Or handle it by throwing it further if that suits your design
         }
-        return new TableNode("Unknown", database);
     }
+
+
 
     public GraphComponent toGraphComponent() {
         IGraph graph = new DefaultGraph();
@@ -53,12 +80,12 @@ public class RelationalAlgebraTreeGUI extends JFrame {
         if (root != null) {
             buildGraph(graph, root, null);
         }
-
         return graphComponent;
     }
 
     private void buildGraph(IGraph graph, RelationalAlgebraNode node, INode parentNode) {
-        INode currentNode = graph.createNode(new RectD(0, 0, 100, 50), null, node.toString());
+        String label = node.toString();
+        INode currentNode = graph.createNode(new RectD(0, 0, 100, 50), null, label);
         if (parentNode != null) {
             graph.createEdge(parentNode, currentNode);
         }

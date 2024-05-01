@@ -19,7 +19,6 @@ public class GroupByNode extends UnaryNode {
 
     @Override
     public int estimateResultSize() {
-        // Placeholder: real implementation would depend on the data distribution
         return getChild().estimateResultSize() / 10;
     }
 

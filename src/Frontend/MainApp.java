@@ -850,7 +850,6 @@ public class MainApp extends JPanel {
             String tableName = matcher.group(1);
             List<String> columnNames = Arrays.asList(matcher.group(2).split(",")).stream().map(String::trim).collect(Collectors.toList());
             List<String> values = Arrays.asList(matcher.group(3).split(",")).stream().map(String::trim).collect(Collectors.toList());
-
             try {
                 Table table = database.getTable(tableName);
                 List<Column> columns = table.getColumns();
@@ -861,22 +860,19 @@ public class MainApp extends JPanel {
                     String value = values.get(i);
                     switch (column.getType().toUpperCase()) {
                         case "VARCHAR":
-                            formattedValues.add(value); // Assuming value is already in single quotes
+                            formattedValues.add(value);
                             break;
                         case "INT":
-                            formattedValues.add(value.replaceAll("'", "")); // Remove single quotes for integers
+                            formattedValues.add(value.replaceAll("'", ""));
                             break;
                         default:
-                            formattedValues.add(value); // Add other types as needed
+                            formattedValues.add(value);
                     }
                 }
-
                 database.insertIntoTable(tableName, columnNames, formattedValues);
-
-                // Swing UI update on the EDT
                 SwingUtilities.invokeLater(() -> {
                     try {
-                        updateTableVis(tableName);  // Update table visualization
+                        updateTableVis(tableName);
                     } catch (TableNotFoundException e) {
                         throw new RuntimeException(e);
                     }
@@ -892,8 +888,6 @@ public class MainApp extends JPanel {
             JOptionPane.showMessageDialog(this, "Invalid insert statement", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
 
 //    private void insertIntoTable(String sql) {
 //        Pattern insertPattern = Pattern.compile("INSERT INTO (\\w+) \\(([^)]+)\\) VALUES \\(([^)]+)\\)", Pattern.CASE_INSENSITIVE);

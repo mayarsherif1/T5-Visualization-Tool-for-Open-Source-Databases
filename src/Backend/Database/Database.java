@@ -1,16 +1,15 @@
 package Backend.Database;
 
-import Backend.Index;
 import Backend.Exception.TableNotFoundException;
+import Backend.Index;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Database {
     private Map<String, Table> tables;
     private Map<String, Index> indexes;
+    private static final Random random = new Random();
+
 
     public Database(){
         this.tables=new HashMap<>();
@@ -20,11 +19,11 @@ public class Database {
     public void addTable(Table table){
         tables.put(table.getName(), table);
         System.out.println("Table inside database: "+ tables.get(table.getName()));
-
     }
 
     public Table getTable(String tableName) throws TableNotFoundException {
         Table table = tables.get(tableName);
+        System.out.println("Table inside database: "+ table);
         if(table==null){
             throw new TableNotFoundException(tableName);
         }
@@ -137,6 +136,37 @@ public class Database {
         return data;
     }
 
+    public void addRandomDataToTable(String tableName, int numRecords) throws TableNotFoundException {
+        Table table = getTable(tableName);
+        List<Column> columns = table.getColumns();
+        Random random = new Random();
+
+        for (int i = 0; i < numRecords; i++) {
+            List<String> values = new ArrayList<>();
+            for (Column column : columns) {
+                values.add(generateRandomValueForType(column.getType()));
+            }
+            insertIntoTable(tableName, columnNamesFrom(columns), values);
+        }
+    }
+    private List<String> columnNamesFrom(List<Column> columns) {
+        List<String> names = new ArrayList<>();
+        for (Column column : columns) {
+            names.add(column.getName());
+        }
+        return names;
+    }
+
+    private String generateRandomValueForType(String type) {
+        switch (type.toLowerCase()) {
+            case "int":
+                return String.valueOf(random.nextInt(100));
+            case "varchar":
+                return "Text" + random.nextInt(100);
+            default:
+                return "UnknownType";
+        }
+    }
 
 
 }
