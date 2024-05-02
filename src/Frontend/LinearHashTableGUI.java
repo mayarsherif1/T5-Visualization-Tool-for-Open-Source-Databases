@@ -77,16 +77,6 @@ public class LinearHashTableGUI extends JFrame {
 
     public static void main(String[] args) {
         LinearHashingIndex hashingIndex = new LinearHashingIndex(2, 0.8);
-//        linearHashTable.insert("0011");
-//        linearHashTable.insert("1100");
-//        linearHashTable.insert("0101");
-//        linearHashTable.insert("1011");
-//        linearHashTable.insert("0010");
-//        linearHashTable.insert("1101");
-//        linearHashTable.insert("0111");
-//        linearHashTable.insert("1001");
-//        linearHashTable.insert("0001");
-
         hashingIndex.insert("0011");
         hashingIndex.insert("1100");
         hashingIndex.insert("0101");
@@ -96,16 +86,6 @@ public class LinearHashTableGUI extends JFrame {
         hashingIndex.insert("0111");
         hashingIndex.insert("1001");
         hashingIndex.insert("0001");
-
-//        hashingIndex.insert(Integer.parseInt("0011", 2));
-//        hashingIndex.insert(Integer.parseInt("1100", 2));
-//        hashingIndex.insert(Integer.parseInt("0101", 2));
-//        hashingIndex.insert(Integer.parseInt("1011", 2));
-//        hashingIndex.insert(Integer.parseInt("0010", 2));
-//        hashingIndex.insert(Integer.parseInt("1101", 2));
-//        hashingIndex.insert(Integer.parseInt("0111", 2));
-//        hashingIndex.insert(Integer.parseInt("1001", 2));
-//        hashingIndex.insert(Integer.parseInt("0001", 2));
 
 
         //hashingIndex.debugRehash();

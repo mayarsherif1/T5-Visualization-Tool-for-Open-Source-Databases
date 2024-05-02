@@ -10,6 +10,7 @@ public class Bucket {
 
     public Bucket(int capacity) {
         this.capacity = capacity;
+
         this.records = new ArrayList<>(capacity);
         this.overflowBucket = null;
     }
@@ -19,22 +20,32 @@ public class Bucket {
     }
 
     public void insert(String hash) {
-        if (!isFull()) {
-            records.add(hash);
-            System.out.println("Inserted: " + hash + " into main bucket.");
-        } else {
+        if (isFull()) {
             if (overflowBucket == null) {
+
                 overflowBucket = new Bucket(capacity);
-                System.out.println("Creating new overflow bucket for hash: " + hash);
             }
             overflowBucket.insert(hash);
-            System.out.println("Inserted: " + hash + " into overflow bucket.");
+        } else {
+            records.add(hash);
         }
+    }
+
+
+    public boolean contains(String hash) {
+        if (records.contains(hash)) {
+            return true;
+
+        } else if (overflowBucket != null) {
+            return overflowBucket.contains(hash);
+        }
+        return false;
     }
 
     public List<String> getContents() {
         List<String> contents = new ArrayList<>(records);
         if (overflowBucket != null) {
+
             contents.addAll(overflowBucket.getContents());
         }
         return contents;
@@ -59,6 +70,7 @@ public class Bucket {
     public String getOverflowContents() {
         return overflowBucket == null ? "" : String.join(", ", overflowBucket.getContents());
     }
+
 
     public int getTotalSize() {
         return records.size() + (overflowBucket == null ? 0 : overflowBucket.getTotalSize());
