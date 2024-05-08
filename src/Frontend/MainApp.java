@@ -289,7 +289,7 @@ public class MainApp extends JPanel {
                     break;
                 case "linear_hashtable":
                     System.out.println("Creating Linear Hash Table Index");
-                    createLinearHashTableIndex(tableName, firstColumnName);
+                    createLinearHashTable(tableName, firstColumnName);
                     break;
                 default:
                     System.out.println("Unsupported tree type specified.");
@@ -301,37 +301,28 @@ public class MainApp extends JPanel {
         }
     }
 
-    private void createLinearHashTableIndex(String tableName, String firstColumnName) {
+    private void createLinearHashTable(String tableName, String columnName) {
         try {
             Table table = database.getTable(tableName);
-            List<String> columnData = table.getColumnData(firstColumnName);
-            if (columnData.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No data found in the column: " + firstColumnName, "Info", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-            String bucketCapacityInput = JOptionPane.showInputDialog(this, "Enter the bucket capacity:", "Bucket Capacity", JOptionPane.QUESTION_MESSAGE);
-            if (bucketCapacityInput == null || bucketCapacityInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Bucket capacity is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String thresholdInput = JOptionPane.showInputDialog(this, "Enter the load factor threshold (e.g., 0.75):", "Threshold for Expansion", JOptionPane.QUESTION_MESSAGE);
-            if (thresholdInput == null || thresholdInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Load factor threshold is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            if (table == null) {
+                JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            int bucketCapacity = Integer.parseInt(bucketCapacityInput);
-            double threshold = Double.parseDouble(thresholdInput);
+            // Get bucket capacity and threshold from the user
+            int bucketCapacity = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter the bucket capacity for the linear hash table:", "Bucket Capacity", JOptionPane.QUESTION_MESSAGE));
+            double threshold = Double.parseDouble(JOptionPane.showInputDialog(this, "Enter the load factor threshold for the linear hash table (e.g., 0.75):", "Threshold", JOptionPane.QUESTION_MESSAGE));
 
             LinearHashingIndex hashTable = new LinearHashingIndex(bucketCapacity, threshold);
-            for (String key : columnData) {
-                if (key != null && !key.isEmpty()) {
-                    hashTable.insert(key.replace("'", "").trim());
+            List<String> columnData = table.getColumnData(columnName);
+            for (Object key : columnData) {
+                if (key != null) {
+                    hashTable.insert(Integer.parseInt(key.toString()));
                 }
             }
             visualizeHashTable(hashTable);
-        } catch (TableNotFoundException e) {
-            JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter valid numerical values.", "Input Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -481,7 +472,7 @@ public class MainApp extends JPanel {
                 points.add(new Backend.Point(x, y));
             }
 
-            QuadTree quadTree = new QuadTree(new Rectangle(0, 0, 400, 400), 4); // Assuming boundary and max capacity
+            QuadTree quadTree = new QuadTree(new Rectangle(0, 0, 400, 400), 4);
             for (Backend.Point point : points) {
                 quadTree.insert(point);
             }

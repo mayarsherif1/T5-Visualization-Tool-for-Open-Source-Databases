@@ -48,9 +48,10 @@ public class EHashTableGUI extends JFrame{
         int xPosition = 0;
 
         for (int i = 0; i < buckets.size(); i++) {
+            int bucketNumber = hashTable.hash(hashTable.prepareKey(i)); // Get the correct bucket number
             RectD bucketRect = new RectD(xPosition, 100, 100, 50);
             INode bucketNode = graph.createNode(bucketRect);
-            graph.addLabel(bucketNode, "Bucket " + i + ": " + buckets.get(i).size() + " items");
+            graph.addLabel(bucketNode, "Bucket " + bucketNumber + ": " + buckets.get(i).size() + " items");
 
             int valueYPosition = 150;
             for (String value : buckets.get(i)) {
@@ -66,7 +67,6 @@ public class EHashTableGUI extends JFrame{
         graphComponent.fitGraphBounds();
         graphComponent.updateUI();
     }
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             ExtensibleHashTable hashTable = new ExtensibleHashTable(2);

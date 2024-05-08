@@ -7,47 +7,56 @@ public class LinearHashingIndex {
     private List<Bucket> buckets;
     private int capacity;
     private double threshold;
-    private int n;
+    private int globalDepth;
+    private int m;
 
     public LinearHashingIndex(int bucketCapacity, double threshold) {
         this.capacity = bucketCapacity;
-        this.buckets = new ArrayList<>();
-        this.buckets.add(new Bucket(bucketCapacity));
         this.threshold = threshold;
-        this.n = 1;
-    }
-
-
-
-
-    private int hash(String hashValue) {
-        try {
-            return Integer.parseInt(hashValue, 2) % n;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("For input string: \"" + hashValue + "\"");
+        this.buckets = new ArrayList<>();
+        this.globalDepth = 1;
+        this.m = 0;
+        for (int i = 0; i < (1 << globalDepth); i++) {
+            this.buckets.add(new Bucket(capacity));
         }
+        System.out.println("Linear Hashing Index initialized.");
+        System.out.println("Initial number of buckets: " + buckets.size());
+        System.out.println("Initial bucket capacity: " + capacity);
+        System.out.println("Threshold: " + threshold);
+        System.out.println("Global depth: " + globalDepth);
+        System.out.println("m: " + m);
     }
 
+    private int hash(int hashValue, int depth) {
+        return hashValue % (1 << depth);
+    }
 
-    public void insert(String hashValue) {
-        try {
+    private int getBucketIndex(int hashValue) {
+        int hash = hash(hashValue, globalDepth);
+        if (hash < m) {
+            return hash(hashValue, globalDepth + 1);
+        }
+        return hash;
+    }
 
-            int bucketIndex = hash(hashValue);
-            Bucket targetBucket = buckets.get(bucketIndex);
-            if (!targetBucket.isFull()) {
-                targetBucket.insert(hashValue);
-                System.out.println("Inserted " + hashValue + " into Bucket " + bucketIndex);
+    public void insert(int hashValue) {
+        int bucketIndex = getBucketIndex(hashValue);
+        System.out.println("Inserting " + hashValue + " into Bucket " + bucketIndex);
+        Bucket targetBucket = buckets.get(bucketIndex);
+        if (!targetBucket.isFull()) {
+            targetBucket.insert(hashValue);
+            System.out.println("Inserted " + hashValue + " into Bucket " + bucketIndex);
+        } else {
+            if (targetBucket.getOverflowBucket() != null) {
+                targetBucket.getOverflowBucket().insert(hashValue);
             } else {
                 targetBucket.insertIntoOverflow(hashValue);
-                System.out.println("Inserted " + hashValue + " into overflow for Bucket " + bucketIndex);
             }
-            if (calculateUtilization() >= threshold) {
-                System.out.println("Utilization exceeds threshold. Expanding hash table...");
-                expand();
-            }
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            throw new NumberFormatException(e.getMessage());
+        }
+        if (calculateUtilization() >= threshold) {
+            System.out.println("Utilization exceeds threshold. Expanding hash table...");
+            expand();
+            System.out.println("Expansion completed.");
         }
     }
 
@@ -55,47 +64,56 @@ public class LinearHashingIndex {
         int totalItems = 0;
         for (Bucket bucket : buckets) {
             totalItems += bucket.getTotalSize();
-
         }
-        return (double) totalItems / (n * capacity);
+        return (double) totalItems / (buckets.size() * capacity);
     }
 
     private void expand() {
         System.out.println("Expanding hash table...");
-        int oldSize = buckets.size();
-        n = 2 * oldSize;
-        for (int i = oldSize; i < n; i++) {
-            buckets.add(new Bucket(capacity));
-
+        buckets.add(new Bucket(capacity));
+        rehashBucket(m);
+        m++;
+        if (m == (1 << (globalDepth - 1))) {
+            m = 0;
+            globalDepth++;
         }
-        rehash();
+        System.out.println("Global depth increased to " + globalDepth);
+        System.out.println("m increased to " + m);
+        System.out.println("Number of buckets increased to " + buckets.size());
+        System.out.println("Expansion completed.");
     }
 
-    private void rehash() {
-        System.out.println("Rehashing...");
-        List<Bucket> newBuckets = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            newBuckets.add(new Bucket(capacity));
+    private void rehashBucket(int bucketIndex) {
+        System.out.println("Rehashing bucket " + bucketIndex + "...");
+        Bucket oldBucket = buckets.get(bucketIndex);
+        List<Integer> rehashedItems = new ArrayList<>(oldBucket.getContents());
+        if (oldBucket.hasOverflow()) {
+            rehashedItems.addAll(oldBucket.getOverflowBucket().getContents());
         }
-
-        for (Bucket bucket : buckets) {
-            for (String item : bucket.getContents()) {
-                int newBucketIndex = hash(item);
-                newBuckets.get(newBucketIndex).insert(item);
+        oldBucket.clear();
+        for (int item : rehashedItems) {
+            int newBucketIndex = getBucketIndex(item);
+            System.out.println("Inserting " + item + " into Bucket " + newBucketIndex);
+            Bucket targetBucket = buckets.get(newBucketIndex);
+            if (!targetBucket.isFull()) {
+                targetBucket.insert(item);
+            } else {
+                targetBucket.insertIntoOverflow(item);
             }
+            System.out.println("Rehashed " + item + " into correct bucket");
         }
-        buckets = newBuckets;
-
-        System.out.println("Rehashing completed.");
+        System.out.println("Rehashed bucket " + bucketIndex + " completed.");
     }
 
     public void printBuckets() {
         System.out.println("Printing buckets...");
         for (int i = 0; i < buckets.size(); i++) {
             System.out.print("Bucket " + i + ": ");
-            buckets.get(i).getRecords().forEach(record -> System.out.print(record + " "));
-            System.out.println();
-
+            System.out.println(buckets.get(i));
+            if (buckets.get(i).getOverflowBucket() != null) {
+                System.out.print("  Overflow: ");
+                System.out.println(buckets.get(i).getOverflowBucket());
+            }
         }
         System.out.println("Bucket printing completed.");
     }
@@ -108,13 +126,8 @@ public class LinearHashingIndex {
         return buckets.get(i);
     }
 
-    public boolean contains(String value) {
-        for (Bucket bucket : buckets) {
-            if (bucket.contains(value)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean contains(int value) {
+        int bucketIndex = getBucketIndex(value);
+        return buckets.get(bucketIndex).contains(value);
     }
-
 }

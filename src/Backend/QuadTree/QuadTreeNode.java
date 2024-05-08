@@ -47,27 +47,6 @@ public class QuadTreeNode {
             insertIntoChild(point, maxDepth);
         }
     }
-//        else if (!isLeaf){
-//            insertIntoChild(point,maxDepth);
-//        }
-//        else {
-//            points.add(point);
-//        }
-
-//        if(!isLeaf) {
-//            if (NE.bounds.contains(point.getX(), point.getY())) {
-//                NE.insert(point, maxDepth);
-//            } else if (NW.bounds.contains(point.getX(), point.getY())) {
-//                NW.insert(point, maxDepth);
-//            } else if (SE.bounds.contains(point.getX(), point.getY())) {
-//                SE.insert(point, maxDepth);
-//            } else if (SW.bounds.contains(point.getX(), point.getY())) {
-//                SW.insert(point, maxDepth);
-//            }
-//        }
-//        else {
-//            points.add(point);
-//        }
 
 
 
@@ -88,7 +67,6 @@ public class QuadTreeNode {
         int newHeight = bounds.height / 2;
         int x = bounds.x;
         int y = bounds.y;
-
         NE = new QuadTreeNode(new Rectangle(x + newWidth, y, newWidth, newHeight), depth + 1);
         NW = new QuadTreeNode(new Rectangle(x, y, newWidth, newHeight), depth + 1);
         SE = new QuadTreeNode(new Rectangle(x + newWidth, y + newHeight, newWidth, newHeight), depth + 1);
@@ -102,7 +80,6 @@ public class QuadTreeNode {
         if (isLeaf) {
             return points.remove(point);
         } else {
-            // The point is in a child node, so call delete on the appropriate child
             if (NE != null && NE.bounds.contains(point.getX(),point.getY())) {
                 return NE.delete(point, maxDepth);
             } else if (NW != null && NW.bounds.contains(point.getX(),point.getY())) {
@@ -153,6 +130,4 @@ public class QuadTreeNode {
             return sb.toString();
         }
     }
-
-
 }

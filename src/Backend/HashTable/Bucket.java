@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Bucket {
-    private List<String> records;
+    private List<Integer> records;
     private final int capacity;
     private Bucket overflowBucket;
 
     public Bucket(int capacity) {
         this.capacity = capacity;
-
         this.records = new ArrayList<>(capacity);
         this.overflowBucket = null;
     }
@@ -19,33 +18,25 @@ public class Bucket {
         return records.size() >= capacity;
     }
 
-    public void insert(String hash) {
+    public boolean insert(int hash) {
         if (isFull()) {
             if (overflowBucket == null) {
-
                 overflowBucket = new Bucket(capacity);
             }
-            overflowBucket.insert(hash);
+            return overflowBucket.insert(hash);
         } else {
             records.add(hash);
-        }
-    }
-
-
-    public boolean contains(String hash) {
-        if (records.contains(hash)) {
             return true;
-
-        } else if (overflowBucket != null) {
-            return overflowBucket.contains(hash);
         }
-        return false;
     }
 
-    public List<String> getContents() {
-        List<String> contents = new ArrayList<>(records);
-        if (overflowBucket != null) {
+    public boolean contains(int hash) {
+        return records.contains(hash) || (overflowBucket != null && overflowBucket.contains(hash));
+    }
 
+    public List<Integer> getContents() {
+        List<Integer> contents = new ArrayList<>(records);
+        if (overflowBucket != null) {
             contents.addAll(overflowBucket.getContents());
         }
         return contents;
@@ -63,24 +54,30 @@ public class Bucket {
         return overflowBucket;
     }
 
+    public void insertIntoOverflow(int hash) {
+        if (!isFull()) {
+            insert(hash);
+            System.out.println("Inserted: " + hash + " into main bucket after overflow check.");
+        } else {
+            if (!records.contains(hash)) {
+                if (overflowBucket == null) {
+                    overflowBucket = new Bucket(capacity);
+                }
+                overflowBucket.insert(hash);
+                System.out.println("Inserted: " + hash + " into overflow bucket.");
+            }
+        }
+    }
+
     public boolean hasOverflow() {
         return overflowBucket != null && !overflowBucket.getContents().isEmpty();
     }
-
-    public String getOverflowContents() {
-        return overflowBucket == null ? "" : String.join(", ", overflowBucket.getContents());
-    }
-
 
     public int getTotalSize() {
         return records.size() + (overflowBucket == null ? 0 : overflowBucket.getTotalSize());
     }
 
-    public void setOverflowBucket(Bucket bucket) {
-        this.overflowBucket = bucket;
-    }
-
-    public List<String> getRecords() {
+    public List<Integer> getRecords() {
         return new ArrayList<>(records);
     }
 
@@ -94,22 +91,7 @@ public class Bucket {
         return sb.toString();
     }
 
-
-    public void insertIntoOverflow(String hashValue) {
-        if (overflowBucket == null) {
-            overflowBucket = new Bucket(capacity);
-        }
-        overflowBucket.insert(hashValue);
-        System.out.println("Inserted: " + hashValue + " into overflow bucket.");
-    }
-
-    public String[] getOverflow() {
-        return overflowBucket == null ? new String[0] : overflowBucket.getContents().toArray(new String[0]);
-    }
-
-
-    public void clearOverflow() {
-        overflowBucket.clear();
-        overflowBucket = null;
+    public String getOverflowContents() {
+        return overflowBucket.toString();
     }
 }

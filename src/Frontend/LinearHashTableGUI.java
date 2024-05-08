@@ -77,15 +77,15 @@ public class LinearHashTableGUI extends JFrame {
 
     public static void main(String[] args) {
         LinearHashingIndex hashingIndex = new LinearHashingIndex(2, 0.8);
-        hashingIndex.insert("0011");
-        hashingIndex.insert("1100");
-        hashingIndex.insert("0101");
-        hashingIndex.insert("1011");
-        hashingIndex.insert("0010");
-        hashingIndex.insert("1101");
-        hashingIndex.insert("0111");
-        hashingIndex.insert("1001");
-        hashingIndex.insert("0001");
+        hashingIndex.insert(3);
+        hashingIndex.insert(12);
+        hashingIndex.insert(5);
+        hashingIndex.insert(11);
+        hashingIndex.insert(2);
+        hashingIndex.insert(13);
+        hashingIndex.insert(7);
+        hashingIndex.insert(9);
+        hashingIndex.insert(1);
 
 
         //hashingIndex.debugRehash();
