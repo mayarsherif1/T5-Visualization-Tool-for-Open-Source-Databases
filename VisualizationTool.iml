@@ -9,17 +9,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="antlr-4.9.3-complete" level="project" />
-    <orderEntry type="library" name="yfiles-for-java-swing" level="project" />
     <orderEntry type="library" name="jung-visualization-2.1.1" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/../repo/testings/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-neo4j/integration/neo4j/build/resources/main" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="yFiles" level="project" />
     <orderEntry type="module-library">
       <library name="JUnit4">
         <CLASSES>
@@ -48,5 +39,16 @@
     </orderEntry>
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="jetbrains.kotlin.gradle.plugin" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1)/yFiles-for-Java-Swing-Complete-3.6-Evaluation/lib/yfiles-for-java-swing.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="src1" level="project" />
+    <orderEntry type="library" name="yfiles-for-java-swing" level="project" />
   </component>
 </module>

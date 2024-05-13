@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<license>
+  <licensefileversion>1.0</licensefileversion>
+  <product>yFiles for Java (Swing)</product>
+  <package>complete</package>
+  <type>eval</type>
+  <distribution>false</distribution>
+  <watermark><![CDATA[yFiles for Java (Swing) Evaluation License (expires in ${license-days-remaining} days)]]></watermark>
+  <comment>ea84c3f8-40da-45a2-b4b3-3f2df4a03ead</comment>
+  <version>3.6</version>
+  <date>05/13/2024</date>
+  <expires>07/13/2024</expires>
+  <key>05af82dc04bf9a54e926c769375529f3450779f362716c0dbd2ee8f41fb53e114d867476fe84e4a3f31ed4edf144cb87322642e367be068d3eb3b059fbb828fc5566f82d02dff78cedd4c32cbca65f648d015383fd969ea298503fc87cf78ae908bba409b0bd93a9d659701d5e70e84d70f690b6ab8d4881b4f710fe33f7ab2b</key>
+</license>

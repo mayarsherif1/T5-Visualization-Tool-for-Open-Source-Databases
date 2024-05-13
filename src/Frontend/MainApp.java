@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -43,12 +44,27 @@ public class MainApp extends JPanel {
     private BrinIndex brinIndex;
     private Random random = new Random();
 
+    private JList<String> indexList;
+    private DefaultListModel<String> indexListModel;
+    private Map<String, JComponent> indexVisualizations;
+
+
 
     public MainApp() {
         database= new Database();
         setLayout(new BorderLayout());
         tabbedPane= new JTabbedPane();
         treePanel = new TreePanel(null);
+        indexListModel = new DefaultListModel<>();
+        indexList = new JList<>(indexListModel);
+        indexVisualizations = new HashMap<>();
+        indexList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        indexList.addListSelectionListener(this::indexSelected);
+        JScrollPane indexScrollPane = new JScrollPane(indexList);
+        indexScrollPane.setPreferredSize(new Dimension(200, getHeight()));
+        indexScrollPane.setBorder(BorderFactory.createTitledBorder("Indexes"));
+
+
         treePanel.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
@@ -127,7 +143,21 @@ public class MainApp extends JPanel {
 
         add(tabbedPane, BorderLayout.CENTER);
         add(tablesScrollPane, BorderLayout.SOUTH);
+        add(indexScrollPane, BorderLayout.WEST);
 
+    }
+
+    private void indexSelected(ListSelectionEvent e) {
+        if (!e.getValueIsAdjusting()) {
+            String selectedIndex = indexList.getSelectedValue();
+            if (selectedIndex != null && indexVisualizations.containsKey(selectedIndex)) {
+                JComponent visualization = indexVisualizations.get(selectedIndex);
+                treePanel.removeAll();
+                treePanel.add(visualization, BorderLayout.CENTER);
+                treePanel.revalidate();
+                treePanel.repaint();
+            }
+        }
     }
 
 
@@ -308,8 +338,6 @@ public class MainApp extends JPanel {
                 JOptionPane.showMessageDialog(this, "Table not found: " + tableName, "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            // Get bucket capacity and threshold from the user
             int bucketCapacity = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter the bucket capacity for the linear hash table:", "Bucket Capacity", JOptionPane.QUESTION_MESSAGE));
             double threshold = Double.parseDouble(JOptionPane.showInputDialog(this, "Enter the load factor threshold for the linear hash table (e.g., 0.75):", "Threshold", JOptionPane.QUESTION_MESSAGE));
 
@@ -320,7 +348,11 @@ public class MainApp extends JPanel {
                     hashTable.insert(Integer.parseInt(key.toString()));
                 }
             }
-            visualizeHashTable(hashTable);
+            LinearHashTableGUI linearHashTableGUI = new LinearHashTableGUI(hashTable);
+            visualizeHashTable(linearHashTableGUI);
+
+            indexVisualizations.put(tableName + "_LinearHashtable_" + columnName, linearHashTableGUI.getGraphComponent());
+            indexListModel.addElement(tableName + "_LinearHashtable_" + columnName);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numerical values.", "Input Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -328,11 +360,10 @@ public class MainApp extends JPanel {
         }
     }
 
-    private void visualizeHashTable(LinearHashingIndex LinearhashTable) {
+    private void visualizeHashTable(LinearHashTableGUI linearHashTableGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            LinearHashTableGUI gridIndexGUI = new LinearHashTableGUI(LinearhashTable);
-            treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
+            treePanel.setGraphComponent(linearHashTableGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
 
@@ -354,7 +385,10 @@ public class MainApp extends JPanel {
                     hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
                 }
             }
-            visualizeExtensibleHashTable(hashTable);
+            EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
+            visualizeExtensibleHashTable(extensibleHashTableGUI);
+            indexVisualizations.put(tableName + "_ExtensibleHashtable_" + firstColumnName, extensibleHashTableGUI.getGraphComponent());
+            indexListModel.addElement(tableName + "_ExtensibleHashtable_" + firstColumnName);
         } catch (TableNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -362,11 +396,10 @@ public class MainApp extends JPanel {
         }
     }
 
-    private void visualizeExtensibleHashTable(ExtensibleHashTable hashTable) {
+    private void visualizeExtensibleHashTable(EHashTableGUI extensibleHashTableGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            EHashTableGUI gridIndexGUI = new EHashTableGUI(hashTable);
-            treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
+            treePanel.setGraphComponent(extensibleHashTableGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
         });
@@ -392,8 +425,11 @@ public class MainApp extends JPanel {
                     }
                 }
             }
+            GridGUI gridIndexGUI = new GridGUI(gridIndex);
 
-            visualizeGridIndex(gridIndex);
+            visualizeGridIndex(gridIndexGUI);
+            indexVisualizations.put(tableName + "_GridIndex_" + firstColumnName + " & " + secondColumnName + " & " + thirdColumnName, gridIndexGUI.getGraphComponent());
+            indexListModel.addElement(tableName + "_GridIndex_" + firstColumnName + " & " + secondColumnName + " & " + thirdColumnName);
         } catch (TableNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -413,10 +449,9 @@ public class MainApp extends JPanel {
         return ranges;
     }
 
-    private void visualizeGridIndex(Grid gridIndex) {
+    private void visualizeGridIndex(GridGUI gridIndexGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            GridGUI gridIndexGUI = new GridGUI(gridIndex);
             treePanel.setGraphComponent(gridIndexGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
@@ -433,13 +468,16 @@ public class MainApp extends JPanel {
                 BitmapIndex bitmapIndex = bitmapMap.computeIfAbsent(value, v -> new BitmapIndex(data.size()));
                 bitmapIndex.set(i);
             }
-            visualizeAllBitmaps(bitmapMap);
+
+            visualizeAllBitmaps(bitmapMap, tableName, columnName);
+
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Failed to create Bitmap Index for column " + columnName + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void visualizeAllBitmaps(Map<String, BitmapIndex> bitmapMap) {
+    private void visualizeAllBitmaps(Map<String, BitmapIndex> bitmapMap, String tableName, String columnName) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
             JTabbedPane tabbedPane = new JTabbedPane();
@@ -448,7 +486,10 @@ public class MainApp extends JPanel {
                 BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmapIndex), Collections.singletonList(value));
                 graphComponent = bitmapGUI.getGraphComponent();
                 tabbedPane.addTab(value, graphComponent);
+                indexVisualizations.put(tableName + "_BitMap_" + columnName, bitmapGUI.getGraphComponent());
+
             });
+            indexListModel.addElement(tableName + "_BitMap_" + columnName);
             treePanel.add(tabbedPane);
             treePanel.revalidate();
             treePanel.repaint();
@@ -476,8 +517,12 @@ public class MainApp extends JPanel {
             for (Backend.Point point : points) {
                 quadTree.insert(point);
             }
+            QuadTreeGUI quadTreeGUI = new QuadTreeGUI(quadTree);
 
-            visualizeQuadTree(quadTree);
+            visualizeQuadTree(quadTreeGUI);
+
+            indexVisualizations.put(tableName + "_QuadTree_" + columnName + " & " + secondColumnName, quadTreeGUI.getGraphComponent());
+            indexListModel.addElement(tableName + "_QuadTree_" + columnName + " & " + secondColumnName);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error parsing coordinate data.", "Data Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -485,10 +530,9 @@ public class MainApp extends JPanel {
         }
     }
 
-    private void visualizeQuadTree(QuadTree quadTree) {
+    private void visualizeQuadTree(QuadTreeGUI quadTreeGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            QuadTreeGUI quadTreeGUI = new QuadTreeGUI(quadTree);
             quadTreeGUI.applyHierarchicLayout();
             treePanel.add(quadTreeGUI,BorderLayout.CENTER);
             //treePanel.setGraphComponent(quadTreeGUI.getGraphComponent());
@@ -514,14 +558,17 @@ public class MainApp extends JPanel {
             points.add(newPoint);
         }
         KDTree kdTree = new KDTree(points);
+        KDTreeGUI kdTreeGUI = new KDTreeGUI(kdTree);
 
-        visualizeKDTree(kdTree);
+        visualizeKDTree(kdTreeGUI);
+        indexVisualizations.put(tableName + "_KDTree_" + firstColumnName + " & " + secondColumnName, kdTreeGUI.getGraphComponent());
+        indexListModel.addElement(tableName + "_KDTree_" + firstColumnName + " & " + secondColumnName);
+
     }
 
-    private void visualizeKDTree(KDTree kdTree) {
+    private void visualizeKDTree(KDTreeGUI kdTreeGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            KDTreeGUI kdTreeGUI = new KDTreeGUI(kdTree);
             treePanel.setGraphComponent(kdTreeGUI.getGraphComponent());
             treePanel.revalidate();
             treePanel.repaint();
@@ -531,13 +578,17 @@ public class MainApp extends JPanel {
     private void createBPlusTree(String tableName, String columnName) {
         List<String> data = database.getDataFromTable(tableName, columnName);
         System.out.println("createBPlusTree data: " + data);
-        visualizeBPlusTree(data);
+        BPlusTreeGUI<String> bPlusTreeGUI = new BPlusTreeGUI<>();
+
+        visualizeBPlusTree(bPlusTreeGUI,data);
+        indexVisualizations.put(tableName + "_BPlusTree_" + columnName, bPlusTreeGUI.getGraphComponent());
+        indexListModel.addElement(tableName + "_BPlusTree_" + columnName);
+
         System.out.println("createBPlusTree after visualizeBPlusTree method");
     }
 
-    private void visualizeBPlusTree(List<String> data) {
+    private void visualizeBPlusTree(BPlusTreeGUI bPlusTreeGUI,List<String> data) {
         SwingUtilities.invokeLater(() -> {
-            BPlusTreeGUI<String> bPlusTreeGUI = new BPlusTreeGUI<>();
             for (String value : data) {
                 bPlusTreeGUI.getBPlusTree().insert(value);
                 System.out.println("value: " + value);
@@ -545,6 +596,7 @@ public class MainApp extends JPanel {
             System.out.println("before refreshVis");
             bPlusTreeGUI.refreshVis();
             System.out.println("after refreshVis");
+
             treePanel.setGraphComponent(bPlusTreeGUI.getGraphComponent());
             System.out.println("after setGraphComponent");
             treePanel.revalidate();
@@ -577,13 +629,15 @@ public class MainApp extends JPanel {
                 }
             }
         }
-        visualizeBrinIndex();
+        BrinGUI brinGUI = new BrinGUI(brinIndex);
+        visualizeBrinIndex(brinGUI);
+        indexVisualizations.put(tableName + "_BRIN_" + firstColumnName, brinGUI.getGraphComponent());
+        indexListModel.addElement(tableName + "_BRIN_" + firstColumnName);
     }
 
-    private void visualizeBrinIndex() {
+    private void visualizeBrinIndex(BrinGUI brinGUI) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            BrinGUI brinGUI = new BrinGUI(brinIndex);
 //            treePanel.add(brinGUI,BorderLayout.CENTER);
             treePanel.setGraphComponent(brinGUI.getGraphComponent());
             treePanel.revalidate();

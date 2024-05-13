@@ -15,7 +15,7 @@ import java.util.List;
 
 public class LinearHashTableGUI extends JFrame {
     private LinearHashingIndex hashingIndex;
-    private GraphComponent graphComponent;
+    public GraphComponent graphComponent;
 
     public LinearHashTableGUI(LinearHashingIndex hashingIndex) {
         this.hashingIndex = hashingIndex;
@@ -75,25 +75,25 @@ public class LinearHashTableGUI extends JFrame {
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        LinearHashingIndex hashingIndex = new LinearHashingIndex(2, 0.8);
-        hashingIndex.insert(3);
-        hashingIndex.insert(12);
-        hashingIndex.insert(5);
-        hashingIndex.insert(11);
-        hashingIndex.insert(2);
-        hashingIndex.insert(13);
-        hashingIndex.insert(7);
-        hashingIndex.insert(9);
-        hashingIndex.insert(1);
-
-
-        //hashingIndex.debugRehash();
-
-        LinearHashTableGUI visualizer = new LinearHashTableGUI(hashingIndex);
-        visualizer.visualize();
-        visualizer.updateGraph();
-    }
+//    public static void main(String[] args) {
+//        LinearHashingIndex hashingIndex = new LinearHashingIndex(2, 0.8);
+//        hashingIndex.insert(3);
+//        hashingIndex.insert(12);
+//        hashingIndex.insert(5);
+//        hashingIndex.insert(11);
+//        hashingIndex.insert(2);
+//        hashingIndex.insert(13);
+//        hashingIndex.insert(7);
+//        hashingIndex.insert(9);
+//        hashingIndex.insert(1);
+//
+//
+//        //hashingIndex.debugRehash();
+//
+//        LinearHashTableGUI visualizer = new LinearHashTableGUI(hashingIndex);
+//        visualizer.visualize();
+//        visualizer.updateGraph();
+//    }
 
     public GraphComponent getGraphComponent() {
         return graphComponent;

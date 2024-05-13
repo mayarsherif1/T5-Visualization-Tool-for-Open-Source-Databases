@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="yFiles">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/doc/javadoc" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-fx" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-gradle/deploy/gradledemo/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-maven/deploy/mavendemo/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-neo4j/integration/neo4j/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-pdf" />
+      <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1).zip!/yFiles-for-Java-Swing-Complete-3.6-Evaluation/demos/src-svg" />
+    </SOURCES>
+  </library>
+</component>
