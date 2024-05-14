@@ -41,6 +41,7 @@ public class QuadTreeGUI extends JPanel {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, spatialPanel, graphComponent);
         splitPane.setDividerLocation(400);
 
+        setLayout(new BorderLayout());
         add(splitPane, BorderLayout.CENTER);
     }
 
@@ -86,6 +87,10 @@ public class QuadTreeGUI extends JPanel {
                 visualizeHierarchicalComponent(node.SW, yNode);
             }
         }
+    }
+
+    public SpatialPanel getSpatialPanel() {
+        return spatialPanel;
     }
 
     public void applyHierarchicLayout() {

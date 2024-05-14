@@ -49,7 +49,6 @@ public class MainApp extends JPanel {
     private Map<String, JComponent> indexVisualizations;
 
 
-
     public MainApp() {
         database= new Database();
         setLayout(new BorderLayout());
@@ -153,6 +152,7 @@ public class MainApp extends JPanel {
             if (selectedIndex != null && indexVisualizations.containsKey(selectedIndex)) {
                 JComponent visualization = indexVisualizations.get(selectedIndex);
                 treePanel.removeAll();
+                treePanel.setLayout(new BorderLayout());
                 treePanel.add(visualization, BorderLayout.CENTER);
                 treePanel.revalidate();
                 treePanel.repaint();
@@ -480,22 +480,22 @@ public class MainApp extends JPanel {
     private void visualizeAllBitmaps(Map<String, BitmapIndex> bitmapMap, String tableName, String columnName) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            JTabbedPane tabbedPane = new JTabbedPane();
+            tabbedPane.removeAll();
+            JTabbedPane tabbedPane1 = new JTabbedPane();
             bitmapMap.forEach((value, bitmapIndex) -> {
                 GraphComponent graphComponent = new GraphComponent();
                 BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmapIndex), Collections.singletonList(value));
                 graphComponent = bitmapGUI.getGraphComponent();
                 tabbedPane.addTab(value, graphComponent);
-                indexVisualizations.put(tableName + "_BitMap_" + columnName, bitmapGUI.getGraphComponent());
 
             });
+            indexVisualizations.put(tableName + "_BitMap_" + columnName, tabbedPane1);
             indexListModel.addElement(tableName + "_BitMap_" + columnName);
-            treePanel.add(tabbedPane);
+            treePanel.add(tabbedPane1, BorderLayout.CENTER);
             treePanel.revalidate();
             treePanel.repaint();
         });
     }
-
 
 
     private void createQuadTree(String tableName, String columnName, String secondColumnName) {
@@ -521,8 +521,9 @@ public class MainApp extends JPanel {
 
             visualizeQuadTree(quadTreeGUI);
 
-            indexVisualizations.put(tableName + "_QuadTree_" + columnName + " & " + secondColumnName, quadTreeGUI.getGraphComponent());
+            indexVisualizations.put(tableName + "_QuadTree_" + columnName + " & " + secondColumnName, quadTreeGUI);
             indexListModel.addElement(tableName + "_QuadTree_" + columnName + " & " + secondColumnName);
+
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error parsing coordinate data.", "Data Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
