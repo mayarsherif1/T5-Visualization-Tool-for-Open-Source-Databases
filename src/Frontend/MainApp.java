@@ -379,10 +379,12 @@ public class MainApp extends JPanel {
                 JOptionPane.showMessageDialog(this, "No data found in the column: " + firstColumnName, "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-            ExtensibleHashTable hashTable = new ExtensibleHashTable(rows);
+            int bucketCapacity = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter the bucket capacity for the extensible hash table:", "Bucket Capacity", JOptionPane.QUESTION_MESSAGE));
+
+            ExtensibleHashTable hashTable = new ExtensibleHashTable(bucketCapacity-1);
             for (String key : columnData) {
                 if (key != null && !key.isEmpty()) {
-                    //hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
+                    hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
                 }
             }
             EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
