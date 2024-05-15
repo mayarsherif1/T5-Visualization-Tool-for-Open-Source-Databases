@@ -11,8 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class EHashTableGUI extends JFrame{
-
+public class EHashTableGUI extends JFrame {
     private ExtensibleHashTable hashTable;
     private GraphComponent graphComponent;
     private IGraph graph;
@@ -44,17 +43,17 @@ public class EHashTableGUI extends JFrame{
     }
 
     private void updateGraphVisualization() {
+        graph.clear();
         List<List<String>> buckets = hashTable.getBuckets();
         int xPosition = 0;
 
         for (int i = 0; i < buckets.size(); i++) {
-            int bucketNumber = hashTable.hash(hashTable.prepareKey(i)); // Get the correct bucket number
+            List<String> bucket = buckets.get(i);
             RectD bucketRect = new RectD(xPosition, 100, 100, 50);
             INode bucketNode = graph.createNode(bucketRect);
-            graph.addLabel(bucketNode, "Bucket " + bucketNumber + ": " + buckets.get(i).size() + " items");
-
+            graph.addLabel(bucketNode, "Bucket " + i + ": " + bucket.size() + " items");
             int valueYPosition = 150;
-            for (String value : buckets.get(i)) {
+            for (String value : bucket) {
                 RectD valueRect = new RectD(xPosition, valueYPosition, 100, 30);
                 INode valueNode = graph.createNode(valueRect);
                 graph.addLabel(valueNode, value);
@@ -63,10 +62,10 @@ public class EHashTableGUI extends JFrame{
             }
             xPosition += 110;
         }
-
         graphComponent.fitGraphBounds();
         graphComponent.updateUI();
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             ExtensibleHashTable hashTable = new ExtensibleHashTable(2);
@@ -78,15 +77,9 @@ public class EHashTableGUI extends JFrame{
             hashTable.insert(6);
             hashTable.insert(8);
 
-            EHashTableGUI EHashTableGUI = new EHashTableGUI(hashTable);
-            EHashTableGUI.visualize();
-            EHashTableGUI.updateGraphVisualization();
+            EHashTableGUI eHashTableGUI = new EHashTableGUI(hashTable);
+            eHashTableGUI.setVisible(true);
         });
-    }
-
-    private void visualize() {
-        updateGraphVisualization();
-        setVisible(true);
     }
 
     public GraphComponent getGraphComponent() {

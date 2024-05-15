@@ -1,14 +1,12 @@
 package Backend.HashTable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ExtensibleHashTable {
     private List<List<String>> directory;
     private List<Integer> localDepths;
-    private int bitDepth;
     private int globalDepth;
     private int bucketCapacity;
 
@@ -17,33 +15,27 @@ public class ExtensibleHashTable {
         this.globalDepth = 1;
         this.directory = new ArrayList<>();
         this.localDepths = new ArrayList<>();
-        this.bitDepth = 1;
         for (int i = 0; i < (1 << globalDepth); i++) {
             directory.add(new LinkedList<>());
             localDepths.add(globalDepth);
         }
     }
 
-
-    public String prepareKey(int key) {
-        StringBuilder binaryKey = new StringBuilder(Integer.toBinaryString(key));
-        System.out.println("binaryKey: "+ binaryKey);
-        while (binaryKey.length() < bitDepth+1){
-            binaryKey.insert(0, "0");
+    private String prepareKey(int key) {
+        int bits = Math.max(1, (int) Math.ceil(Math.log(key + 1) / Math.log(2)));
+        String binaryKey = String.format("%" + bits + "s", Integer.toBinaryString(key)).replace(' ', '0');
+        while (binaryKey.length() < 4) {
+            binaryKey = "0" + binaryKey;
         }
-        System.out.println("binaryKey after loop: "+ binaryKey);
-        return binaryKey.toString();
+        return binaryKey;
     }
 
-
-    public int hash(String binaryKey) {
-        int significantBits = (int) Math.ceil(Math.log(directory.size()) / Math.log(2));
-        if (binaryKey.length() > significantBits) {
-            binaryKey = binaryKey.substring(0, significantBits); // Use the most significant bits
+    private int hash(String binaryKey) {
+        if (binaryKey.length() < globalDepth) {
+            binaryKey = String.format("%" + globalDepth + "s", binaryKey).replace(' ', '0');
         }
-        return Integer.parseInt(binaryKey, 2) & ((1 << significantBits) - 1);
+        return Integer.parseInt(binaryKey.substring(0, globalDepth), 2);
     }
-
 
     public void insert(int key) {
         String binaryKey = prepareKey(key);
@@ -52,121 +44,84 @@ public class ExtensibleHashTable {
 
         if (!bucket.contains(binaryKey)) {
             bucket.add(binaryKey);
-            System.out.println("Inserting key: " + key + ", Prepared Binary Key: " + binaryKey + ", Bucket Index: " + bucketIndex);
             if (bucket.size() > bucketCapacity) {
-                splitBucket(bucketIndex);
-                if (directory.get(bucketIndex).contains(binaryKey)) {
-                    directory.get(bucketIndex).remove(binaryKey); // Remove and reinsert to correct bucket
-                    insert(key);
+                if (localDepths.get(bucketIndex) == globalDepth) {
+                    expandAndRedistribute();
                 }
+                splitBucket(bucketIndex);
             }
         }
+        printDirectory();
     }
-
 
     private void splitBucket(int index) {
         int localDepth = localDepths.get(index);
         if (localDepth == globalDepth) {
             expandAndRedistribute();
         }
-        List<String> bucket = directory.get(index);
-        List<String> newBucket = new LinkedList<>();
-        int newLocalDepth = localDepth + 1;
 
+        localDepth = localDepths.get(index);
         int splitBit = 1 << localDepth;
-        bucket.removeIf(key -> {
-            if ((Integer.parseInt(key, 2) & splitBit) != 0) {
-                newBucket.add(key);
-                return true;
-            }
-            return false;
-        });
-
-        // Update directory and depths
+        int newLocalDepth = localDepth + 1;
         int newIndex = index | splitBit;
-        directory.set(index, bucket);
-        directory.set(newIndex, newBucket);
-        localDepths.set(index, newLocalDepth);
+
+        List<String> newBucket = new LinkedList<>();
+        if (newIndex < directory.size()) {
+            directory.set(newIndex, newBucket);
+        } else {
+            directory.add(newIndex, newBucket);
+        }
         localDepths.set(newIndex, newLocalDepth);
+
+        localDepths.set(index, newLocalDepth);
+
+        List<String> oldBucket = new ArrayList<>(directory.get(index));
+        directory.get(index).clear();
+
+        oldBucket.forEach(key -> reinsert(prepareKey(Integer.parseInt(key, 2))));
     }
-
-    public int getBucketIndex(String binaryKey) {
-        System.out.println("binaryKey: "+ binaryKey);
-        String trimmedKey = binaryKey.length() >= bitDepth ? binaryKey.substring(0, bitDepth)
-                : String.format("%" + bitDepth + "s", binaryKey).replace(' ', '0');
-
-        System.out.println("trimmedKey: "+ trimmedKey);
-        System.out.println("integer trimmedKey: "+ Integer.parseInt(trimmedKey, 2));
-        return Integer.parseInt(trimmedKey, 2);
-    }
-
 
     private void expandAndRedistribute() {
+        int oldSize = directory.size();
+        for (int i = 0; i < oldSize; i++) {
+            directory.add(new LinkedList<>());
+            localDepths.add(globalDepth + 1);
+        }
         globalDepth++;
-        List<List<String>> newDirectory = new ArrayList<>(Collections.nCopies(1 << globalDepth, null));
-        List<Integer> newLocalDepths = new ArrayList<>(Collections.nCopies(1 << globalDepth, 0));
+    }
 
+    private void reinsert(String binaryKey) {
+        int bucketIndex = hash(binaryKey);
+        List<String> bucket = directory.get(bucketIndex);
+        bucket.add(binaryKey);
+    }
+
+    private void printDirectory() {
         for (int i = 0; i < directory.size(); i++) {
-            List<String> bucket = directory.get(i);
-            int depthMask = (1 << localDepths.get(i)) - 1;
-            int baseIndex = i & depthMask;
-            for (int j = 0; j < (1 << (globalDepth - localDepths.get(i))); j++) {
-                int newIndex = baseIndex | (j << localDepths.get(i));
-                newDirectory.set(newIndex, bucket);
-                newLocalDepths.set(newIndex, localDepths.get(i));
+            if (!directory.get(i).isEmpty()) {
+                System.out.print("Bucket " + String.format("%03d", i) + ": Contains ");
+                List<String> keys = directory.get(i);
+                for (int j = 0; j < keys.size(); j++) {
+                    System.out.print(keys.get(j));
+                    if (j < keys.size() - 1) System.out.print(", ");
+                }
+                System.out.println(keys.size() == bucketCapacity ? " (full)" : "");
             }
         }
-
-        directory = newDirectory;
-        localDepths = newLocalDepths;
     }
 
-
-    public void delete(int key) {
-        String binaryKey = Integer.toBinaryString(key);
-        int index = getBucketIndex(binaryKey);
-        directory.get(index).remove(binaryKey);
-    }
-
-    public boolean contains(int key) {
-        String binaryKey = Integer.toBinaryString(key);
-        int index = getBucketIndex(binaryKey);
-        return directory.get(index).contains(binaryKey);
-    }
-
-    public int size() {
-        int totalSize = 0;
-        for (List<String> bucket : directory) {
-            totalSize += bucket.size();
-        }
-        return totalSize;
-    }
-
-
-    public boolean isEmpty() {
-        for (List<String> bucket : directory) {
-            if (!bucket.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void clear() {
-        for (List<String> bucket : directory) {
-            bucket.clear();
-        }
-    }
-
-    public List<List<String>> getDirectory(){
-        return directory;
+    public static void main(String[] args) {
+        ExtensibleHashTable hashTable = new ExtensibleHashTable(2);
+        hashTable.insert(0);
+        hashTable.insert(1);
+        hashTable.insert(2);
+        hashTable.insert(3);
+        hashTable.insert(4);
+        hashTable.insert(6);
+        hashTable.insert(8);
     }
 
     public List<List<String>> getBuckets() {
         return directory;
-    }
-
-    public int getLocalDepth(int i) {
-        return localDepths.get(i);
     }
 }

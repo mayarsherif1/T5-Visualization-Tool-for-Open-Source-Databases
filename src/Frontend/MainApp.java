@@ -382,13 +382,13 @@ public class MainApp extends JPanel {
             ExtensibleHashTable hashTable = new ExtensibleHashTable(rows);
             for (String key : columnData) {
                 if (key != null && !key.isEmpty()) {
-                    hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
+                    //hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
                 }
             }
-            EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
-            visualizeExtensibleHashTable(extensibleHashTableGUI);
-            indexVisualizations.put(tableName + "_ExtensibleHashtable_" + firstColumnName, extensibleHashTableGUI.getGraphComponent());
-            indexListModel.addElement(tableName + "_ExtensibleHashtable_" + firstColumnName);
+           // EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
+            //visualizeExtensibleHashTable(extensibleHashTableGUI);
+            //indexVisualizations.put(tableName + "_ExtensibleHashtable_" + firstColumnName, extensibleHashTableGUI.getGraphComponent());
+            //indexListModel.addElement(tableName + "_ExtensibleHashtable_" + firstColumnName);
         } catch (TableNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -396,14 +396,14 @@ public class MainApp extends JPanel {
         }
     }
 
-    private void visualizeExtensibleHashTable(EHashTableGUI extensibleHashTableGUI) {
-        SwingUtilities.invokeLater(() -> {
-            treePanel.removeAll();
-            treePanel.setGraphComponent(extensibleHashTableGUI.getGraphComponent());
-            treePanel.revalidate();
-            treePanel.repaint();
-        });
-    }
+//    private void visualizeExtensibleHashTable(EHashTableGUI extensibleHashTableGUI) {
+//        SwingUtilities.invokeLater(() -> {
+//            treePanel.removeAll();
+//            treePanel.setGraphComponent(extensibleHashTableGUI.getGraphComponent());
+//            treePanel.revalidate();
+//            treePanel.repaint();
+//        });
+//    }
 
     private void createGridIndex(String tableName, String firstColumnName, String secondColumnName, String thirdColumnName) {
         try {
