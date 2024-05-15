@@ -385,10 +385,10 @@ public class MainApp extends JPanel {
                     //hashTable.insert(Integer.parseInt(key.replace("'", "").trim()));
                 }
             }
-           // EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
-            //visualizeExtensibleHashTable(extensibleHashTableGUI);
-            //indexVisualizations.put(tableName + "_ExtensibleHashtable_" + firstColumnName, extensibleHashTableGUI.getGraphComponent());
-            //indexListModel.addElement(tableName + "_ExtensibleHashtable_" + firstColumnName);
+            EHashTableGUI extensibleHashTableGUI = new EHashTableGUI(hashTable);
+            visualizeExtensibleHashTable(extensibleHashTableGUI);
+            indexVisualizations.put(tableName + "_ExtensibleHashtable_" + firstColumnName, extensibleHashTableGUI.getGraphComponent());
+            indexListModel.addElement(tableName + "_ExtensibleHashtable_" + firstColumnName);
         } catch (TableNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Table not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -396,21 +396,21 @@ public class MainApp extends JPanel {
         }
     }
 
-//    private void visualizeExtensibleHashTable(EHashTableGUI extensibleHashTableGUI) {
-//        SwingUtilities.invokeLater(() -> {
-//            treePanel.removeAll();
-//            treePanel.setGraphComponent(extensibleHashTableGUI.getGraphComponent());
-//            treePanel.revalidate();
-//            treePanel.repaint();
-//        });
-//    }
+    private void visualizeExtensibleHashTable(EHashTableGUI extensibleHashTableGUI) {
+        SwingUtilities.invokeLater(() -> {
+            treePanel.removeAll();
+            treePanel.setGraphComponent(extensibleHashTableGUI.getGraphComponent());
+            treePanel.revalidate();
+            treePanel.repaint();
+        });
+    }
 
     private void createGridIndex(String tableName, String firstColumnName, String secondColumnName, String thirdColumnName) {
         try {
             Table table = database.getTable(tableName);
             int rows = table.getRows().size();
             int columns = table.getColumns().size();
-            Grid gridIndex = new Grid(rows, columns);
+            Grid gridIndex = new Grid();
             List<int[]> ranges = promptForRanges(columns);
 
             for (int i = 0; i < rows; i++) {
