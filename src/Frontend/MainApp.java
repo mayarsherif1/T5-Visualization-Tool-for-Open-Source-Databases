@@ -482,8 +482,8 @@ public class MainApp extends JPanel {
     private void visualizeAllBitmaps(Map<String, BitmapIndex> bitmapMap, String tableName, String columnName) {
         SwingUtilities.invokeLater(() -> {
             treePanel.removeAll();
-            tabbedPane.removeAll();
-            JTabbedPane tabbedPane1 = new JTabbedPane();
+            //tabbedPane.removeAll();
+            JTabbedPane tabbedPane = new JTabbedPane();
             bitmapMap.forEach((value, bitmapIndex) -> {
                 GraphComponent graphComponent = new GraphComponent();
                 BitmapGUI bitmapGUI = new BitmapGUI(Collections.singletonList(bitmapIndex), Collections.singletonList(value));
@@ -491,9 +491,9 @@ public class MainApp extends JPanel {
                 tabbedPane.addTab(value, graphComponent);
 
             });
-            indexVisualizations.put(tableName + "_BitMap_" + columnName, tabbedPane1);
+            indexVisualizations.put(tableName + "_BitMap_" + columnName, tabbedPane);
             indexListModel.addElement(tableName + "_BitMap_" + columnName);
-            treePanel.add(tabbedPane1, BorderLayout.CENTER);
+            treePanel.add(tabbedPane, BorderLayout.CENTER);
             treePanel.revalidate();
             treePanel.repaint();
         });
