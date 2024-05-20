@@ -39,16 +39,15 @@
     </orderEntry>
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="jetbrains.kotlin.gradle.plugin" level="project" />
+    <orderEntry type="library" name="src1" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/yFiles-for-Java-Swing-Complete-3.6-Evaluation (1)/yFiles-for-Java-Swing-Complete-3.6-Evaluation/lib/yfiles-for-java-swing.jar!/" />
+          <root url="jar://$MODULE_DIR$/src/lib/yfiles-for-java-swing.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="src1" level="project" />
-    <orderEntry type="library" name="yfiles-for-java-swing" level="project" />
   </component>
 </module>

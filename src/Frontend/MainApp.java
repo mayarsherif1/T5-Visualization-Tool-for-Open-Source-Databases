@@ -183,7 +183,7 @@ public class MainApp extends JPanel {
                         throw new RuntimeException(ex);
                     }
                 } else {
-                    visualizeRelationalAlgebraTree(sql);
+                    System.out.println("Wrong sql command");
                 }
             }
         });
@@ -217,12 +217,6 @@ public class MainApp extends JPanel {
         tablesPanel.repaint();
     }
 
-    private void visualizeRelationalAlgebraTree(String sql) {
-        RelationalAlgebraTreeGUI algebraTree = new RelationalAlgebraTreeGUI(sql, database);
-        GraphComponent algebraGraph = algebraTree.toGraphComponent();
-        treePanel.setGraphComponent(algebraGraph);
-        treePanel.repaint();
-    }
 
 //    private void generateAndInsertData(String tableName, int numRecords) {
 //        try {

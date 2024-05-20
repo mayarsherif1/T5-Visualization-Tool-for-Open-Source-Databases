@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: Frontend.MainApp
+Created-By: 21.0.3 (Eclipse Adoptium)
+
