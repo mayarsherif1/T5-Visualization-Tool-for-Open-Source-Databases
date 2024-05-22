@@ -1,2 +1,2 @@
 Main-Class: Frontend.MainApp
-
+Class-Path: lib/yfiles-for-java-swing.jar lib/antlr-4.9.3-complete.jar
